@@ -64,13 +64,13 @@ void CBaseServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, in
 
 void CBaseServerGameDLL::GameFrame( bool simulating )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBaseServerGameDLL::PreClientUpdate( bool simulating )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
@@ -196,7 +196,7 @@ void CBaseServerGameDLL::Restore( CSaveRestoreData *pSaveData, bool b )
 
 bool CBaseServerGameDLL::IsRestoring()
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return false;
 }

@@ -13,7 +13,7 @@ EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CClientEntityList, IClientEntityList, VCLIENT
 
 IClientNetworkable* CClientEntityList::GetClientNetworkable( int entnum )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return nullptr;
 }
@@ -37,7 +37,7 @@ IClientUnknown *CClientEntityList::GetClientUnknownFromHandle( CBaseHandle hEnt 
 
 IClientEntity *CClientEntityList::GetClientEntity( int entnum )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return nullptr;
 }

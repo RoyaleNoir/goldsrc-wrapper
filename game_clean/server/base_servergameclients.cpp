@@ -15,7 +15,7 @@ bool CBaseServerGameClients::ClientConnect( edict_t *pEntity, const char *pszNam
 {
 	LOG_STUB();
 
-	return false;
+	return true;
 }
 
 
