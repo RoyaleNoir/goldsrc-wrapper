@@ -78,9 +78,7 @@ void CBaseClientDLL::LevelShutdown( void )
 
 ClientClass *CBaseClientDLL::GetAllClasses( void )
 {
-	LOG_STUB();
-
-	return nullptr;
+	return g_pClientClassHead;
 }
 
 
@@ -118,7 +116,7 @@ void CBaseClientDLL::HudText( const char *message )
 
 void CBaseClientDLL::IN_ActivateMouse( void )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
@@ -130,19 +128,19 @@ void CBaseClientDLL::IN_DeactivateMouse( void )
 
 void CBaseClientDLL::IN_Accumulate( void )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBaseClientDLL::IN_ClearStates( void )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 bool CBaseClientDLL::IN_IsKeyDown( const char *name, bool &isdown )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return false;
 }
@@ -150,14 +148,13 @@ bool CBaseClientDLL::IN_IsKeyDown( const char *name, bool &isdown )
 
 void CBaseClientDLL::IN_OnMouseWheeled( int nDelta )
 {
-	LOG_STUB();
-
+	//LOG_STUB();
 }
 
 
 int CBaseClientDLL::IN_KeyEvent( int eventcode, ButtonCode_t keynum, const char *pszCurrentBinding )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return 0;
 }
@@ -165,19 +162,19 @@ int CBaseClientDLL::IN_KeyEvent( int eventcode, ButtonCode_t keynum, const char 
 
 void CBaseClientDLL::CreateMove( int sequence_number, float input_sample_frametime, bool active )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBaseClientDLL::ExtraMouseSample( float frametime, bool active )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 bool CBaseClientDLL::WriteUsercmdDeltaToBuffer( bf_write *buf, int from, int to, bool isnewcommand )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return false;
 }
@@ -197,7 +194,7 @@ void CBaseClientDLL::DecodeUserCmdFromBuffer( bf_read &buf, int slot )
 
 void CBaseClientDLL::View_Render( vrect_t *rect )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 

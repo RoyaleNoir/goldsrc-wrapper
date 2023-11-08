@@ -19,25 +19,25 @@ void CBasePrediction::Shutdown( void )
 
 void CBasePrediction::Update( int startframe, bool validframe, int incoming_acknowledged, int outgoing_command )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBasePrediction::PreEntityPacketReceived( int commands_acknowledged, int current_world_update_packet )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBasePrediction::PostEntityPacketReceived( void )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBasePrediction::PostNetworkDataReceived( int commands_acknowledged )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 

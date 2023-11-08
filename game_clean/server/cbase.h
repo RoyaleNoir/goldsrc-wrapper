@@ -29,6 +29,10 @@
 #include <edict.h>
 #include <eiface.h>
 #include <iserverentity.h>
+#include <server_class.h>	// NOTE: this must be before networkvar.h due to a mistake in CHECK_DECLARE_CLASS()
+
+#include <dt_send.h>
+#include <networkvar.h>
 
 #define LOG_STUB() DevMsg( "[SERVER DLL STUB] %s\n", __FUNCTION__ );
 

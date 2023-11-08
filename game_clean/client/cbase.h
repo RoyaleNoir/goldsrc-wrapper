@@ -25,6 +25,10 @@
 // Engine (Shared)
 #include <const.h>
 
+#include <client_class.h>
+#include <dt_recv.h>
+#include <networkvar.h>
+
 #define LOG_STUB() DevMsg( "[CLIENT DLL STUB] %s\n", __FUNCTION__ );
 
 #endif // CBASE_H

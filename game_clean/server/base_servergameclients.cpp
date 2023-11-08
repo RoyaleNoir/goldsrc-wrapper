@@ -57,7 +57,7 @@ void CBaseServerGameClients::ClientSettingsChanged( edict_t *pEdict )
 
 void CBaseServerGameClients::ClientSetupVisibility( edict_t *pViewEntity, edict_t *pClient, unsigned char *pvs, int pvssize )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
@@ -77,7 +77,7 @@ void CBaseServerGameClients::PostClientMessagesSent_DEPRECIATED( void )
 
 CPlayerState *CBaseServerGameClients::GetPlayerState( edict_t *player )
 {
-	LOG_STUB();
+	//LOG_STUB();
 
 	return nullptr;
 }

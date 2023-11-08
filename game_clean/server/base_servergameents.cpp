@@ -41,5 +41,5 @@ CBaseEntity *CBaseServerGameEnts::EdictToBaseEntity( edict_t *pEdict )
 
 void CBaseServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned short *pEdictIndices, int nEdicts )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }

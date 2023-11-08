@@ -106,9 +106,7 @@ float CBaseServerGameDLL::GetTickInterval( void ) const
 
 ServerClass *CBaseServerGameDLL::GetAllServerClasses( void )
 {
-	LOG_STUB();
-
-	return NULL;
+	return g_pServerClassHead;
 }
 
 

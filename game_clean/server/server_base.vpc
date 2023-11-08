@@ -54,6 +54,24 @@ $Project
 		$File	"default_servergameclients.cpp"
 		$File	"default_servergamedll.cpp"
 		$File	"default_servergameents.cpp"
+		$File	"dummyserverclass.cpp"
+
+		// Files not using precompiled header cbase.h
+
+		$File	"$SRCDIR\public\dt_send.cpp"				\
+				"$SRCDIR\public\dt_utlvector_common.cpp"	\
+				"$SRCDIR\public\dt_utlvector_send.cpp"		\
+				"$SRCDIR\public\networkvar.cpp"				\
+				"$SRCDIR\public\server_class.cpp"
+				{
+					$Configuration
+					{
+						$Compiler
+						{
+							$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
+						}
+					}
+				}
 
 		$Folder	"Precompiled Header"
 		{
@@ -82,8 +100,13 @@ $Project
 	$Folder	"Public Header Files"
 	{
 		$File	"$SRCDIR\public\tier0\dbg.h"
+		$File	"$SRCDIR\public\dt_send.h"
+		$File	"$SRCDIR\public\dt_utlvector_common.h"
+		$File	"$SRCDIR\public\dt_utlvector_send.h"
 		$File	"$SRCDIR\public\tier1\interface.h"
+		$File	"$SRCDIR\public\networkvar.h"
 		$File	"$SRCDIR\public\tier0\platform.h"
+		$File	"$SRCDIR\public\server_class.h"
 	}
 
 	$Folder	"Game Shared Header Files"

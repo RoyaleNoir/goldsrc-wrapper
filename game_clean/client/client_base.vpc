@@ -62,10 +62,16 @@ $Project
 		$File	"default_clientdll.cpp"
 		$File	"default_gameclientexports.cpp"
 		$File	"default_prediction.cpp"
+		$File	"dummyclientclass.cpp"
 
 		// Files not using precompiled header cbase.h
 
-		$File	"$SRCDIR\public\crtmemdebug.cpp"
+		$File	"$SRCDIR\public\client_class.cpp"			\
+				"$SRCDIR\public\crtmemdebug.cpp"			\
+				"$SRCDIR\public\dt_recv.cpp"				\
+				"$SRCDIR\public\dt_utlvector_common.cpp"	\
+				"$SRCDIR\public\dt_utlvector_recv.cpp"		\
+				"$SRCDIR\public\networkvar.cpp"
 				{
 					$Configuration
 					{
@@ -104,8 +110,13 @@ $Project
 
 	$Folder	"Public Header Files"
 	{
+		$File	"$SRCDIR\public\client_class.h"
 		$File	"$SRCDIR\public\tier0\dbg.h"
+		$File	"$SRCDIR\public\dt_recv.h"
+		$File	"$SRCDIR\public\dt_utlvector_common.h"
+		$File	"$SRCDIR\public\dt_utlvector_recv.h"
 		$File	"$SRCDIR\public\tier1\interface.h"
+		$File	"$SRCDIR\public\networkvar.h"
 		$File	"$SRCDIR\public\tier0\platform.h"
 	}
 
