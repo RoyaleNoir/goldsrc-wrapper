@@ -1,0 +1,8 @@
+# Batch files
+creategameprojects text
+createallprojects text
+
+# VPC
+devtools/bin/vpc text
+devtools/bin/vpc_linux binary
+devtools/bin/vpc_osx binary

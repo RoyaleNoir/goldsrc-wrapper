@@ -1,0 +1,10 @@
+# File extensions
+*.vcxproj
+*.vcxproj.*
+*.vpc.sentinel
+*.sln
+
+#Folders
+.vs/
+Release*/
+Debug*/
