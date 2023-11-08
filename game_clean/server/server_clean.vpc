@@ -1,0 +1,15 @@
+//-----------------------------------------------------------------------------
+//	SERVER_CLEAN.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro GAMENAME		"clean"
+
+$Include "$SRCDIR\game_clean\server\server_base.vpc"
+
+$Project "Server (Clean)"
+{
+
+}

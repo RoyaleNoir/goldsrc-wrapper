@@ -1,0 +1,83 @@
+//-----------------------------------------------------------------------------
+//	SERVER_BASE.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro OUTBINNAME	"server"
+$Macro OUTBINDIR	"$SRCDIR\..\game\$GAMENAME\bin"
+
+$MacroRequired	"GAMENAME"
+
+$Include	"$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Configuration	"Debug"
+{
+	$General
+	{
+		$OutputDirectory		".\Debug_$GAMENAME"
+		$IntermediateDirectory	".\Debug_$GAMENAME"
+	}
+}
+
+$Configuration	"Release"
+{
+	$General
+	{
+		$OutputDirectory		".\Release_$GAMENAME"
+		$IntermediateDirectory	".\Release_$GAMENAME"
+	}
+}
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories	".\;$BASE;$SRCDIR\game_clean\shared"
+		$PreprocessorDefinitions		"$BASE;GAME_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES"
+		$PreprocessorDefinitions		"$BASE;PROTECTED_THINGS_ENABLE;sprintf=use_Q_snprintf_instead_of_sprintf;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead"
+		$PreprocessorDefinitions		"$BASE;fopen=dont_use_fopen" [$WIN32]
+		$Create/UsePrecompiledHeader	"Use Precompiled Header (/Yu)"
+		$Create/UsePCHThroughFile		"cbase.h"
+	}
+}
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$Folder	"Precompiled Header"
+		{
+			$File	"stdafx.cpp"
+			{
+				$Configuration
+				{
+					$Compiler
+					{
+						$Create/UsePrecompiledHeader	"Create Precompiled Header (/Yc)"
+					}
+				}
+			}
+		}
+	}
+
+	$Folder	"Header Files"
+	{
+		$File	"cbase.h"
+	}
+
+	$Folder	"Public Header Files"
+	{
+
+	}
+
+	$Folder	"Game Shared Header Files"
+	{
+
+	}
+
+	$Folder	"Link Libraries"
+	{
+		
+	}
+}

@@ -1,0 +1,124 @@
+//-----------------------------------------------------------------------------
+//	CLIENT_BASE.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro OUTBINNAME	"client"
+$Macro OUTBINDIR	"$SRCDIR\..\game\$GAMENAME\bin"
+
+$MacroRequired	"GAMENAME"
+
+$Include	"$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Configuration	"Debug"
+{
+	$General
+	{
+		$OutputDirectory		".\Debug_$GAMENAME"
+		$IntermediateDirectory	".\Debug_$GAMENAME"
+	}
+}
+
+$Configuration	"Release"
+{
+	$General
+	{
+		$OutputDirectory		".\Release_$GAMENAME"
+		$IntermediateDirectory	".\Release_$GAMENAME"
+	}
+}
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories	".\;$BASE;$SRCDIR\game_clean\shared"
+		$PreprocessorDefinitions		"$BASE;NO_STRING_T;CLIENT_DLL;VECTOR;VERSION_SAFE_STEAM_API_INTERFACES"
+		$PreprocessorDefinitions		"$BASE;PROTECTED_THINGS_ENABLE;strncpy=use_Q_strncpy_instead;_snprintf=use_Q_snprintf_instead"
+		$PreprocessorDefinitions		"$BASE;fopen=dont_use_fopen" [$WIN32]
+		$Create/UsePrecompiledHeader	"Use Precompiled Header (/Yu)"
+		$Create/UsePCHThroughFile		"cbase.h"
+		$PrecompiledHeaderFile			"$(IntDir)/client.pch"
+	}
+
+	$Linker
+	{
+		$IgnoreImportLibrary		"TRUE"
+	}
+}
+
+$Project
+{
+	$Folder	"Source Files"
+	{
+		$File	"base_centerprint.cpp"
+		$File	"base_clientdll.cpp"
+		$File	"base_gameclientexports.cpp"
+		$File	"base_prediction.cpp"
+		$File	"cliententitylist.cpp"
+		$File	"clientleafsystem.cpp"
+		$File	"default_centerprint.cpp"
+		$File	"default_clientdll.cpp"
+		$File	"default_gameclientexports.cpp"
+		$File	"default_prediction.cpp"
+
+		// Files not using precompiled header cbase.h
+
+		$File	"$SRCDIR\public\crtmemdebug.cpp"
+				{
+					$Configuration
+					{
+						$Compiler
+						{
+							$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
+						}
+					}
+				}
+
+		$Folder	"Precompiled Header"
+		{
+			$File	"stdafx.cpp"
+			{
+				$Configuration
+				{
+					$Compiler
+					{
+						$Create/UsePrecompiledHeader	"Create Precompiled Header (/Yc)"
+					}
+				}
+			}
+		}
+	}
+
+	$Folder	"Header Files"
+	{
+		$File	"base_centerprint.h"
+		$File	"base_clientdll.h"
+		$File	"base_gameclientexports.h"
+		$File	"base_prediction.h"
+		$File	"cbase.h"
+		$File	"cliententitylist.h"
+		$File	"clientleafsystem.h"
+	}
+
+	$Folder	"Public Header Files"
+	{
+		$File	"$SRCDIR\public\tier0\dbg.h"
+		$File	"$SRCDIR\public\tier1\interface.h"
+		$File	"$SRCDIR\public\tier0\platform.h"
+	}
+
+	$Folder	"Game Shared Header Files"
+	{
+
+	}
+
+	$Folder	"Link Libraries"
+	{
+		$Lib	"mathlib"
+		$Lib	"tier1"
+		$Lib	"tier2"
+		$Lib	"tier3"
+	}
+}
