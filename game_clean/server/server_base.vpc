@@ -46,6 +46,15 @@ $Project
 {
 	$Folder	"Source Files"
 	{
+		$File	"base_gameeventlistener.cpp"
+		$File	"base_servergameclients.cpp"
+		$File	"base_servergamedll.cpp"
+		$File	"base_servergameents.cpp"
+		$File	"default_gameeventlistener.cpp"
+		$File	"default_servergameclients.cpp"
+		$File	"default_servergamedll.cpp"
+		$File	"default_servergameents.cpp"
+
 		$Folder	"Precompiled Header"
 		{
 			$File	"stdafx.cpp"
@@ -63,12 +72,18 @@ $Project
 
 	$Folder	"Header Files"
 	{
+		$File	"base_gameeventlistener.h"
+		$File	"base_servergameclients.h"
+		$File	"base_servergamedll.h"
+		$File	"base_servergameents.h"
 		$File	"cbase.h"
 	}
 
 	$Folder	"Public Header Files"
 	{
-
+		$File	"$SRCDIR\public\tier0\dbg.h"
+		$File	"$SRCDIR\public\tier1\interface.h"
+		$File	"$SRCDIR\public\tier0\platform.h"
 	}
 
 	$Folder	"Game Shared Header Files"
@@ -78,6 +93,9 @@ $Project
 
 	$Folder	"Link Libraries"
 	{
-		
+		$Lib	"mathlib"
+		$Lib	"tier1"
+		$Lib	"tier2"
+		$Lib	"tier3"
 	}
 }

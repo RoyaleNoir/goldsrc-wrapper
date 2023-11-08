@@ -14,19 +14,23 @@ EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CClientLeafSystem, IClientLeafSystemEngine, C
 
 void CClientLeafSystem::CreateRenderableHandle( IClientRenderable *pRenderable, bool bIsStaticProp )
 {
+	LOG_STUB();
 }
 
 
 void CClientLeafSystem::RemoveRenderable( ClientRenderHandle_t handle )
 {
+	LOG_STUB();
 }
 
 
 void CClientLeafSystem::AddRenderableToLeaves( ClientRenderHandle_t renderable, int nLeafCount, unsigned short *pLeaves )
 {
+	LOG_STUB();
 }
 
 
 void CClientLeafSystem::ChangeRenderableRenderGroup( ClientRenderHandle_t handle, RenderGroup_t group )
 {
+	LOG_STUB();
 }
