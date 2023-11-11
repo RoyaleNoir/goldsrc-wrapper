@@ -7,6 +7,8 @@
 
 #include "eiface.h"
 
+extern IVEngineServer *engine = NULL;
+
 class CBaseServerGameDLL : public IServerGameDLL
 {
 public:

@@ -1,3 +1,3 @@
-devtools\bin\vpc.exe /cleanbase +client +server
+devtools\bin\vpc.exe /cleanbase /goldsrc +client +server
 pause
 

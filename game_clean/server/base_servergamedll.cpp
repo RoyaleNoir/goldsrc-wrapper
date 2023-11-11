@@ -1,16 +1,21 @@
 #include "cbase.h"
 #include "base_servergamedll.h"
 #include "base_gameeventlistener.h"
+#include "filesystem.h"
 #include "igameevents.h"
 #include "tier1.h"
 #include "tier2/tier2.h"
 #include "tier3/tier3.h"
+#include "engine/IEngineTrace.h"
+#include "engine/ivmodelinfo.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-
+IFileSystem *filesystem = NULL;
 IGameEventManager2 *gameeventmanager = NULL;
+IVModelInfo *modelinfo = NULL;
+IEngineTrace *enginetrace = NULL;
 
 
 bool CBaseServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInterfaceFn physicsFactory, CreateInterfaceFn fileSystemFactory, CGlobalVars *pGlobals )
@@ -26,7 +31,15 @@ bool CBaseServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInterfa
 	ConVar_Register( FCVAR_GAMEDLL );
 
 	// Connect to things
+	if ( ( engine = ( IVEngineServer * )engineFactory( INTERFACEVERSION_VENGINESERVER, NULL ) ) == NULL )
+		return false;
+	if ( ( filesystem = ( IFileSystem * )engineFactory( FILESYSTEM_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
 	if ( ( gameeventmanager = ( IGameEventManager2 * )engineFactory( INTERFACEVERSION_GAMEEVENTSMANAGER2, NULL ) ) == NULL )
+		return false;
+	if ( ( modelinfo = ( IVModelInfo * )engineFactory( VMODELINFO_SERVER_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
+	if ( ( enginetrace = ( IEngineTrace * )engineFactory( INTERFACEVERSION_ENGINETRACE_SERVER, NULL ) ) == NULL )
 		return false;
 
 	g_pGameEventListener->ListenForGameEvents();
@@ -42,7 +55,7 @@ bool CBaseServerGameDLL::ReplayInit( CreateInterfaceFn fnReplayFactory )
 }
 
 
-bool CBaseServerGameDLL::GameInit(void)
+bool CBaseServerGameDLL::GameInit( void )
 {
 	LOG_STUB();
 	return false;
@@ -224,9 +237,7 @@ bool CBaseServerGameDLL::GetUserMessageInfo( int msg_type, char *name, int maxna
 
 CStandardSendProxies *CBaseServerGameDLL::GetStandardSendProxies()
 {
-	LOG_STUB();
-
-	return nullptr;
+	return &g_StandardSendProxies;
 }
 
 

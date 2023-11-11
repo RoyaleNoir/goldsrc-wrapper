@@ -18,6 +18,7 @@ $Project "client"
 {
 	"game\client\client_hl2mp.vpc"			[($WIN32||$POSIX) && $HL2MP]
 	"game_clean\client\client_clean.vpc"	[($WIN32||$POSIX) && $CLEANBASE]
+	"game_clean\client\client_goldsrc.vpc"	[($WIN32||$POSIX) && $GOLDSRC]
 }
 
 $Project "fgdlib"
@@ -44,6 +45,7 @@ $Project "server"
 {
 	"game\server\server_hl2mp.vpc"			[($WIN32||$POSIX) && $HL2MP]
 	"game_clean\server\server_clean.vpc"	[($WIN32||$POSIX) && $CLEANBASE]
+	"game_clean\server\server_goldsrc.vpc"	[($WIN32||$POSIX) && $GOLDSRC]
 }
 
 $Project "mathlib"

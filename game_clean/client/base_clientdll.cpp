@@ -1,12 +1,19 @@
 #include "cbase.h"
-#include <crtmemdebug.h>
 #include "base_clientdll.h"
+#include "crtmemdebug.h"
+#include "engine/ivmodelinfo.h"
+#include "ivrenderview.h"
 #include "tier1.h"
 #include "tier2/tier2.h"
 #include "tier3/tier3.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+
+IVEngineClient *engine = NULL;
+IVRenderView *render = NULL;
+IVModelInfoClient *modelinfo = NULL;
 
 
 int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physicsFactory, CGlobalVarsBase *pGlobals )
@@ -21,6 +28,13 @@ int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn 
 	ConnectTier3Libraries( &appSystemFactory, 1 );
 
 	ConVar_Register( FCVAR_CLIENTDLL );
+
+	if ( (engine = (IVEngineClient *)appSystemFactory( VENGINE_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
+	if ( (render = (IVRenderView *)appSystemFactory( VENGINE_RENDERVIEW_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
+	if ( (modelinfo = (IVModelInfoClient *)appSystemFactory( VMODELINFO_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
 
 	return true;
 }
@@ -156,7 +170,7 @@ int CBaseClientDLL::IN_KeyEvent( int eventcode, ButtonCode_t keynum, const char 
 {
 	//LOG_STUB();
 
-	return 0;
+	return 1;	// Make engine process it
 }
 
 
@@ -320,9 +334,7 @@ void CBaseClientDLL::DispatchOnRestore()
 
 CStandardRecvProxies *CBaseClientDLL::GetStandardRecvProxies()
 {
-	LOG_STUB();
-
-	return nullptr;
+	return &g_StandardRecvProxies;
 }
 
 

@@ -1,0 +1,56 @@
+//-----------------------------------------------------------------------------
+//	CLIENT_GOLDSRC.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro GAMENAME		"goldsrc"
+
+$Include "$SRCDIR\game_clean\client\client_base.vpc"
+
+$Configuration
+{
+	$Compiler
+	{
+		$AdditionalIncludeDirectories	"$BASE;.\goldsrc;$SRCDIR\game_clean\shared\goldsrc"
+		$PreprocessorDefinitions		"$BASE;GOLDSRC_WRAPPER"
+	}
+}
+
+$Project "Client (GoldSRC Wrapper)"
+{
+	$Folder	"Source Files"
+	{
+		-$File	"default_clientdll.cpp"
+
+		$Folder	"GoldSRC Wrapper"
+		{
+			$File	"goldsrc\goldsrc_c_baseentity.cpp"
+			$File	"goldsrc\goldsrc_cdll_int.cpp"
+			$File	"goldsrc\goldsrc_clientdll.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.cpp"
+		}
+	}
+
+	$Folder	"Header Files"
+	{
+		$Folder	"GoldSRC Wrapper"
+		{
+			$File	"goldsrc\goldsrc_c_baseentity.h"
+			$File	"goldsrc\goldsrc_cdll_int.h"
+			$File	"goldsrc\goldsrc_clientdll.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.h"
+		}
+	}
+
+	$Folder "Public Header Files"
+	{
+		$Folder "GoldSRC"
+		{
+			$File	"$SRCDIR\public\goldsrc\goldsrc_const.h"
+		}
+	}
+}
