@@ -7,6 +7,8 @@
 #include "goldsrc_eiface.h"
 #include "goldsrc_globalvars.h"
 #include "goldsrc_mapentities.h"
+#include "goldsrc_playermove_server.h"
+#include "goldsrc_sentences.h"
 
 #if defined( _WIN32 )
 #include "winlite.h"
@@ -114,12 +116,17 @@ bool CGoldSRCServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInte
 
 	// GameInit() seems to be called here
 	g_pGoldSRCEntityInterface->GameInit();
+	g_pGoldSRCPlayerMove->Init();
+
+	SentencesManager()->LoadSentences( "sounds/sentences.txt" );
 
 	return true;
 }
 
 void CGoldSRCServerGameDLL::DLLShutdown( void )
 {
+	SentencesManager()->UnloadSentences();
+
 	g_pGoldSRCCVars->Shutdown();
 
 	if ( pActualServerDLL )
@@ -158,7 +165,7 @@ bool CGoldSRCServerGameDLL::LevelInit( const char *pMapName, char const *pMapEnt
 	}
 	else
 	{
-		ParseMapEntities( pMapEntities );
+		ParseMapEntities( pMapName, pMapEntities );
 	}
 	return true;
 }
@@ -171,7 +178,17 @@ void CGoldSRCServerGameDLL::LevelShutdown( void )
 
 void CGoldSRCServerGameDLL::GameFrame( bool simulating )
 {
-	g_pGoldSRCEntityInterface->StartFrame();
+	// NOTE: Treating this function as SV_Physics()
+
+	// Update the globalvars and call the startframe function
+	GlobalVars()->frametime = gpGlobals->frametime;
+	GlobalVars()->realtime = gpGlobals->curtime;
+
+	if ( simulating )
+	{
+		g_pGoldSRCEntityInterface->StartFrame();
+		g_pGoldSRCServerGameEnts->TickEntities();
+	}
 }
 
 

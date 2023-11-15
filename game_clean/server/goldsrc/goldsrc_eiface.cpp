@@ -1,20 +1,26 @@
 #include "cbase.h"
 #include "goldsrc_eiface.h"
 #include "goldsrc_baseentity.h"
+#include "goldsrc_servergameents.h"
 #include "goldsrc_cvars.h"
 #include "goldsrc_edict.h"
 #include "goldsrc_globalvars.h"
+#include "engine/IEngineSound.h"
 #include "engine/IEngineTrace.h"
 #include "engine/ivmodelinfo.h"
 #include "utlhashtable.h"
+#include "filesystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 
 extern IVEngineServer *engine;
-extern IVModelInfo *modelinfo;
+extern IEngineSound *enginesound;
 extern IEngineTrace *enginetrace;
+extern IVModelInfo *modelinfo;
+extern IFileSystem *filesystem;
+extern CGlobalVars *gpGlobals;
 
 
 namespace GoldSRC
@@ -63,8 +69,8 @@ namespace GoldSRC
 
 	int PrecacheSound( char *s )
 	{
-		//LOG_STUB();
-		return 0;
+		// GoldSrc would return an index, but it's never used so I think it's fine just to send 1 or 0
+		return enginesound->PrecacheSound( s, true );
 	}
 
 
@@ -166,6 +172,11 @@ namespace GoldSRC
 			return g_pGoldSRCEdict->FindByClassName( pEdictStartSearchAfter, pszValue );
 		}
 
+		if ( !Q_strcmp( pszField, "targetname" ) )
+		{
+			return g_pGoldSRCEdict->FindByTargetName( pEdictStartSearchAfter, pszValue );
+		}
+
 		LOG_STUB();
 		return NULL;
 	}
@@ -180,14 +191,13 @@ namespace GoldSRC
 
 	edict_t *FindEntityInSphere( edict_t *pEdictStartSearchAfter, const float *org, float rad )
 	{
-		LOG_STUB();
-		return NULL;
+		return g_pGoldSRCEdict->FindInSphere( pEdictStartSearchAfter, org, rad );
 	}
 
 
 	edict_t *FindClientInPVS( edict_t *pEdict )
 	{
-		LOG_STUB();
+		//LOG_STUB();
 		return NULL;
 	}
 
@@ -261,7 +271,19 @@ namespace GoldSRC
 
 	int WalkMove( edict_t *ent, float yaw, float dist, int iMode )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( ent );
+		if ( pEnt ) 
+		{
+			if ( !( pEnt->EntVars()->flags & ( G_FL_ONGROUND | G_FL_FLY | G_FL_SWIM ) ) )
+			{
+				return 0;
+			}
+
+			yaw = yaw * M_PI_F * 2 / 360;
+			Vector move( cos( yaw ) * dist, sin( yaw ) * dist, 0 );
+			return pEnt->MoveStep( move, true );
+		}
+
 		return 0;
 	}
 
@@ -275,22 +297,111 @@ namespace GoldSRC
 		}
 	}
 
+	class CPlaySoundRecipientFilter : public IRecipientFilter
+	{
+	public:
+		CPlaySoundRecipientFilter()
+		{
+			for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+			{
+				CBaseEntity *pEntity = g_pGoldSRCServerGameEnts->GetEntityByIndex( i );
+				if ( !pEntity )
+					return;
+	
+				// Check if player
+				if ( pEntity->IsPlayer() )
+					m_Recipients.AddToTail( i );
+			}
+		}
+	
+		virtual bool IsReliable( void ) const
+		{
+			return false;
+		}
+	
+		virtual bool IsInitMessage( void ) const
+		{
+			return false;
+		}
+	
+		virtual int GetRecipientCount( void ) const
+		{
+			return m_Recipients.Size();
+		}
+	
+		virtual int GetRecipientIndex( int slot ) const
+		{
+			return m_Recipients.Element( slot );
+		}
+	
+	private:
+		CUtlVector<int> m_Recipients;
+	};
 
 	void EmitSound( edict_t *entity, int channel, const char *sample, float volume, float attenuation, int fFlags, int pitch )
 	{
-		LOG_STUB();
+		// Recipient filter
+		CPlaySoundRecipientFilter filter;
+
+		// entity index
+		int entindex = g_pGoldSRCEdict->ToIndex( entity );
+
+		// Channel ids are backwards compatible
+
+		// Convert the attenuation to a soundlevel
+		soundlevel_t sndlvl = (soundlevel_t)(int)( ( attenuation != 0 ) ? ( 50 + 20 / attenuation ) : 0 );
+
+		// Convert flags
+		int flags = 0;
+
+		if ( fFlags & GoldSRC::G_SND_STOP )
+			flags |= SND_STOP;
+		if ( fFlags & GoldSRC::G_SND_CHANGE_VOL )
+			flags |= SND_CHANGE_VOL;
+		if ( fFlags & GoldSRC::G_SND_CHANGE_PITCH )
+			flags |= SND_CHANGE_PITCH;
+		if ( fFlags & GoldSRC::G_SND_SPAWNING )
+			flags |= SND_SPAWNING;
+
+		enginesound->EmitSound( filter, entindex, channel, sample, volume, sndlvl, flags, pitch );
 	}
 
 
 	void EmitAmbientSound( edict_t *entity, float *pos, const char *samp, float vol, float attenuation, int iFlags, int pitch )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( entity );
+		if ( !pEnt )
+			return;
+
+		int entindex = pEnt->GetSourceEdict()->m_EdictIndex;
+
+		// Convert the origin
+		Vector origin = *( Vector *)pos;
+
+		// Convert the attenuation to a soundlevel
+		soundlevel_t sndlvl = (soundlevel_t)(int)( ( attenuation != 0 ) ? ( 50 + 20 / attenuation ) : 0 );
+
+		// Convert flags
+		int flags = 0;
+
+		if ( iFlags & G_SND_STOP )
+			flags |= SND_STOP;
+		if ( iFlags & G_SND_CHANGE_VOL )
+			flags |= SND_CHANGE_VOL;
+		if ( iFlags & G_SND_CHANGE_PITCH )
+			flags |= SND_CHANGE_PITCH;
+		if ( iFlags & G_SND_SPAWNING )
+			flags |= SND_SPAWNING;
+
+		engine->EmitAmbientSound( entindex, origin, samp, vol, sndlvl, flags, pitch );
 	}
 
 
 	void TraceLine( const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr )
 	{
-		LOG_STUB();
+		//LOG_STUB()
+		Q_memset( ptr, 0, sizeof( TraceResult ) );
+		ptr->flFraction = 1.0f;
 	}
 
 	
@@ -584,7 +695,7 @@ namespace GoldSRC
 
 	void *GetModelPtr( edict_t *pEdict )
 	{
-		LOG_STUB();
+		//LOG_STUB();
 		return NULL;
 	}
 
@@ -617,8 +728,8 @@ namespace GoldSRC
 
 	const char *NameForFunction( uint32 function )
 	{
-		LOG_STUB();
-		return NULL;
+		//LOG_STUB();
+		return "";	// SHUT UP
 	}
 
 
@@ -688,15 +799,13 @@ namespace GoldSRC
 
 	int32 RandomLong( int32 lLow, int32 lHigh )
 	{
-		LOG_STUB();
-		return lLow;
+		return RandomInt( lLow, lHigh );
 	}
 
 
 	float RandomFloat( float flLow, float flHigh )
 	{
-		LOG_STUB();
-		return flLow;
+		return ::RandomFloat( flLow, flHigh );
 	}
 
 
@@ -721,14 +830,24 @@ namespace GoldSRC
 
 	byte *LoadFileForMe( char *filename, int *pLength )
 	{
-		LOG_STUB();
-		return NULL;
+		FileHandle_t hFile = filesystem->Open( filename, "r", "GAME" );
+		if ( !hFile )
+			return NULL;
+
+		*pLength = filesystem->Size( hFile );
+
+		byte *filebytes = (byte*)malloc( *pLength );
+
+		filesystem->Read( filebytes, *pLength, hFile );
+		filesystem->Close( hFile );
+
+		return filebytes;
 	}
 
 
 	void FreeFile( void *buffer )
 	{
-		LOG_STUB();
+		free( buffer );
 	}
 
 
@@ -747,7 +866,11 @@ namespace GoldSRC
 
 	void GetGameDir( char *szGetGameDir )
 	{
-		LOG_STUB();
+		char searchPaths[MAX_PATH];
+		filesystem->GetSearchPath( "GAME", false, searchPaths, MAX_PATH );
+
+		char *pPath = strtok( searchPaths, ";" );
+		Q_strcpy( szGetGameDir, pPath );
 	}
 
 

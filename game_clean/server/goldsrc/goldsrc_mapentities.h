@@ -5,6 +5,6 @@
 #pragma once
 #endif
 
-extern void ParseMapEntities( const char *pMapEntities );
+extern void ParseMapEntities( const char *pMapName, const char *pMapEntities );
 
 #endif // GOLDSRC_MAPENTITIES_H

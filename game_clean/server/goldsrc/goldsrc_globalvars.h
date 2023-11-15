@@ -52,4 +52,9 @@ extern GoldSRC::globalvars_t *g_pGoldSRCGlobalVars;
 extern void GoldSRCGlobalVars_Init();
 extern void GoldSRCGlobalVars_Update();
 
+inline GoldSRC::globalvars_t *GlobalVars()
+{
+	return g_pGoldSRCGlobalVars;
+}
+
 #endif // GOLDSRC_GLOBALVARS_H

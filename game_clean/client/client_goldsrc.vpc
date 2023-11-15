@@ -13,7 +13,7 @@ $Configuration
 {
 	$Compiler
 	{
-		$AdditionalIncludeDirectories	"$BASE;.\goldsrc;$SRCDIR\game_clean\shared\goldsrc"
+		$AdditionalIncludeDirectories	"$BASE;$SRCDIR\vgui2\include;$SRCDIR\vgui2\controls;.\goldsrc;$SRCDIR\game_clean\shared\goldsrc"
 		$PreprocessorDefinitions		"$BASE;GOLDSRC_WRAPPER"
 	}
 }
@@ -24,6 +24,20 @@ $Project "Client (GoldSRC Wrapper)"
 	{
 		-$File	"default_clientdll.cpp"
 
+		// Files not using precompiled header cbase.h
+
+		$File	"$SRCDIR\public\studio.cpp"\
+				"$SRCDIR\public\vgui_controls\vgui_controls.cpp"
+				{
+					$Configuration
+					{
+						$Compiler
+						{
+							$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
+						}
+					}
+				}
+
 		$Folder	"GoldSRC Wrapper"
 		{
 			$File	"goldsrc\goldsrc_c_baseentity.cpp"
@@ -31,6 +45,7 @@ $Project "Client (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_clientdll.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.cpp"
+			$File	"goldsrc\goldsrc_input.cpp"
 		}
 	}
 
@@ -43,6 +58,7 @@ $Project "Client (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_clientdll.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.h"
+			$File	"goldsrc\goldsrc_input.h"
 		}
 	}
 
@@ -52,5 +68,11 @@ $Project "Client (GoldSRC Wrapper)"
 		{
 			$File	"$SRCDIR\public\goldsrc\goldsrc_const.h"
 		}
+	}
+
+	$Folder "Link Libraries"
+	{
+		$Lib	matsys_controls
+		$Lib	vgui_controls
 	}
 }

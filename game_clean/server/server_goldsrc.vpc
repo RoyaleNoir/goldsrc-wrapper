@@ -35,10 +35,14 @@ $Project "Server (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_eiface.cpp"
 			$File	"goldsrc\goldsrc_globalvars.cpp"
 			$File	"goldsrc\goldsrc_mapentities.cpp"
+			$File	"goldsrc\goldsrc_model.cpp"
+			$File	"goldsrc\goldsrc_playermove_server.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.cpp"
+			$File	"goldsrc\goldsrc_sentences.cpp"
 			$File	"goldsrc\goldsrc_servergameclients.cpp"
 			$File	"goldsrc\goldsrc_servergamedll.cpp"
 			$File	"goldsrc\goldsrc_servergameents.cpp"
+			$File	"goldsrc\goldsrc_trace.cpp"
 		}
 	}
 
@@ -53,10 +57,15 @@ $Project "Server (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_eiface.h"
 			$File	"goldsrc\goldsrc_globalvars.h"
 			$File	"goldsrc\goldsrc_mapentities.h"
+			$File	"goldsrc\goldsrc_model.h"
+			$File	"goldsrc\goldsrc_playermove_server.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.h"
+			$File	"goldsrc\goldsrc_sentences.h"
 			$File	"goldsrc\goldsrc_servergameclients.h"
 			$File	"goldsrc\goldsrc_servergamedll.h"
 			$File	"goldsrc\goldsrc_servergameents.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_studio_shared.h"
+			$File	"goldsrc\goldsrc_trace.h"
 		}
 	}
 

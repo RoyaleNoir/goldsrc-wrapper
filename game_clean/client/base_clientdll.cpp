@@ -3,6 +3,7 @@
 #include "crtmemdebug.h"
 #include "engine/ivmodelinfo.h"
 #include "ivrenderview.h"
+#include "engine/ivmodelrender.h"
 #include "tier1.h"
 #include "tier2/tier2.h"
 #include "tier3/tier3.h"
@@ -14,6 +15,8 @@
 IVEngineClient *engine = NULL;
 IVRenderView *render = NULL;
 IVModelInfoClient *modelinfo = NULL;
+IVModelRender *modelrender = NULL;
+CGlobalVarsBase *gpGlobals = NULL;
 
 
 int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physicsFactory, CGlobalVarsBase *pGlobals )
@@ -29,11 +32,15 @@ int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn 
 
 	ConVar_Register( FCVAR_CLIENTDLL );
 
+	gpGlobals = pGlobals;
+
 	if ( (engine = (IVEngineClient *)appSystemFactory( VENGINE_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( (render = (IVRenderView *)appSystemFactory( VENGINE_RENDERVIEW_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( (modelinfo = (IVModelInfoClient *)appSystemFactory( VMODELINFO_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
+	if ( (modelrender = (IVModelRender *)appSystemFactory( VENGINE_HUDMODEL_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 
 	return true;
@@ -520,7 +527,7 @@ const char *CBaseClientDLL::TranslateEffectForVisionFilter( const char *pchEffec
 {
 	LOG_STUB();
 
-	return nullptr;
+	return pchEffectName;
 }
 
 

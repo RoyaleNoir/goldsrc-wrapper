@@ -39,13 +39,13 @@ void CBaseServerGameClients::ClientPutInServer( edict_t *pEntity, char const *pl
 
 void CBaseServerGameClients::ClientCommand( edict_t *pEntity, const CCommand &args )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 
 void CBaseServerGameClients::SetCommandClient( int index )
 {
-	LOG_STUB();
+	//LOG_STUB();
 }
 
 

@@ -151,6 +151,8 @@ private:
 
 	ClientThinkHandle_t m_hThinkHandle;
 	ClientRenderHandle_t m_hRenderHandle;
+
+	ModelInstanceHandle_t m_ModelInstance;
 };
 
 

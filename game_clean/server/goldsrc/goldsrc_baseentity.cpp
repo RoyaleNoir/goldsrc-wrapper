@@ -3,7 +3,9 @@
 #include "goldsrc_edict.h"
 #include "goldsrc_eiface.h"
 #include "goldsrc_servergameents.h"
+#include "goldsrc_globalvars.h"
 #include "engine/IEngineTrace.h"
+#include "goldsrc_trace.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -12,6 +14,7 @@
 extern IVEngineServer *engine;
 extern IVModelInfo* modelinfo;
 extern IEngineTrace *enginetrace;
+extern CGlobalVars *gpGlobals;
 
 
 IMPLEMENT_SERVERCLASS_ST_NOBASE( CBaseEntity, DT_BaseEntity )
@@ -80,6 +83,87 @@ void CBaseEntity::PostGoldSrcSpawn()
 	m_szDebugClassName = GoldSRC::SzFromIndex( EntVars()->classname );
 
 	UpdateFromEntVars();
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Runs a single tick for this entity.
+//-----------------------------------------------------------------------------
+void CBaseEntity::RunTick()
+{
+	// Equivalent to SV_RunEntity() or CBaseEntity::PhysicsSimulate()
+
+	EntVars()->ltime;
+
+	switch( EntVars()->movetype )
+	{
+	case GoldSRC::MOVETYPE_PUSH:
+	// SV_Physics_Pusher()
+	{
+		float oldltime = EntVars()->ltime;
+		float movetime = gpGlobals->frametime;
+		float thinktime = EntVars()->nextthink;
+
+		// Don't overshoot
+		if ( thinktime < EntVars()->ltime + gpGlobals->frametime )
+		{
+			movetime = MAX( thinktime - EntVars()->ltime, 0 );
+		}
+
+		if ( movetime )
+		{
+			if ( TryPush( movetime ) )
+				EntVars()->ltime += movetime;
+		}
+
+		// Only think if the thinktime is within the movement this frame
+		if ( thinktime > oldltime && thinktime <= EntVars()->ltime )
+			Think( true );
+
+		break;
+	}
+	case GoldSRC::MOVETYPE_NONE:
+		// SV_Physics_None()
+		{
+			Think();
+			break;
+		}
+	case GoldSRC::MOVETYPE_STEP:
+		// SV_Physics_Step()
+		{
+			if ( !( EntVars()->flags & ( GoldSRC::G_FL_ONGROUND | GoldSRC::G_FL_FLY | GoldSRC::G_FL_SWIM ) ) )
+			{
+				// TODO: Falling
+			}
+
+			Think();
+			//CheckWaterTransition()
+			break;
+		}
+	default:
+		DevMsg( "Unimplemented/unknown movetype %d\n", EntVars()->movetype );
+		break;
+	}
+
+	UpdateFromEntVars();
+}
+
+
+bool CBaseEntity::TryPush( float movetime )
+{
+	// SV_Push()
+
+	// Try angular movement first
+	Vector angularmove;
+	VectorScale( EntVars()->avelocity, movetime, angularmove.Base() );
+	VectorAdd( EntVars()->angles, angularmove.Base(), EntVars()->angles );
+
+	// Then try linear movement
+	Vector linearmove;
+	VectorScale( EntVars()->velocity, movetime, linearmove.Base() );
+	VectorAdd( EntVars()->origin, linearmove.Base(), EntVars()->origin );
+
+	return true;
 }
 
 
@@ -177,6 +261,21 @@ void CBaseEntity::UpdateFromEntVars()
 	if ( angNewAngles != m_angles )
 		m_angles = angNewAngles;
 
+	// TODO: Other playerstate stuff
+	//VectorCopy( EntVars()->v_angle, angNewAngles.Base() );
+	//m_PlayerState.v_angle = angNewAngles;
+	//m_PlayerState.fixangle = EntVars()->fixangle;
+	
+	if ( EntVars()->fixangle )
+	{
+		VectorCopy( EntVars()->angles, EntVars()->v_angle );
+		VectorCopy( EntVars()->angles, m_PlayerState.v_angle.Base() );
+		m_PlayerState.fixangle = EntVars()->fixangle;
+		EntVars()->fixangle = 0;
+	}
+
+	// TODO: Reset fixangle later on
+
 	// Copy angles
 	VectorCopy( EntVars()->view_ofs, vecNewVec.Base() );
 	if ( vecNewVec != m_view_ofs )
@@ -187,6 +286,24 @@ void CBaseEntity::UpdateFromEntVars()
 	m_Collideable.SetAbsMinMax( EntVars()->absmin, EntVars()->absmax );
 
 	// TODO: Should the rest of the pev data just be sent via a datatable
+}
+
+
+CPlayerState *CBaseEntity::GetPlayerState()
+{
+	return &m_PlayerState;
+}
+
+
+void CBaseEntity::SetIsPlayer( bool bPlayer )
+{
+	m_bPlayer = bPlayer;
+}
+
+
+bool CBaseEntity::IsPlayer()
+{
+	return m_bPlayer;
 }
 
 
@@ -204,16 +321,42 @@ void CBaseEntity::Spawn()
 
 
 //-----------------------------------------------------------------------------
-// Purpose: Update
+// Purpose: Runs the think, and returns whether the entity has been removed.
 //-----------------------------------------------------------------------------
-void CBaseEntity::Think()
+bool CBaseEntity::Think( float useRealTime )
 {
+	// Equivalent to SV_RunThink()
+
 	if ( GoldSrcEdict() )
 	{
-		UpdateFromEntVars();
+		if ( useRealTime )
+		{
+			GlobalVars()->realtime = gpGlobals->curtime;
+		}
+		else
+		{
+			int thinktime = EntVars()->nextthink;
+
+			if ( thinktime <= 0 )
+				return true;
+
+			if ( thinktime > ( gpGlobals->curtime + gpGlobals->frametime ) )
+				return true;
+
+			if ( thinktime < gpGlobals->curtime)
+				thinktime = gpGlobals->curtime;
+
+			GlobalVars()->realtime = thinktime;
+		}
+
+		EntVars()->nextthink = 0;
 		g_pGoldSRCEntityInterface->Think( GoldSrcEdict() );
 		UpdateFromEntVars();
+
+		// TODO: Check dead
 	}
+
+	return true;
 }
 
 
@@ -335,36 +478,98 @@ int CBaseEntity::DropToFloor()
 	Vector vecStart = GetAbsOrigin();
 	Vector vecEnd = vecStart - Vector( 0, 0, 256 );
 
-	CTraceFilterHitAll filter;
-	trace_t tr;
-
-	enginetrace->SweepCollideable(
-		GetCollideable(),
-		vecStart,
-		vecEnd,
-		vec3_angle,
-		MASK_SOLID,
-		&filter,
-		&tr
+	GoldSRC::TraceResult tr = UTIL_TraceEntityHull( 
+		vecStart, 
+		vecEnd, 
+		m_Collideable.OBBMins(), 
+		m_Collideable.OBBMaxs(), 
+		this
 	);
 
-	if ( tr.fraction == 1 || tr.allsolid )
+	if ( tr.flFraction == 1 || tr.fAllSolid )
 		return 0;
 
-	SetOrigin( tr.endpos.Base() );
+	VectorCopy( tr.vecEndPos, EntVars()->origin );
+	// Link()
 
 	if ( GoldSrcEdict() )
 	{
 		EntVars()->flags |= GoldSRC::G_FL_ONGROUND;
 
-		if ( tr.m_pEnt )
+		if ( tr.pHit )
 		{
-			EntVars()->groundentity = tr.m_pEnt->GoldSrcEdict();
+			EntVars()->groundentity = tr.pHit;
 		}
 	}
 
 	UpdateFromEntVars();
 
+	return 1;
+}
+
+#define STEPSIZE 18
+
+int CBaseEntity::MoveStep( const Vector &move, bool relink )
+{
+	// SV_movestep
+
+	// Save off bounds
+	Vector vecMins;
+	Vector vecMaxs;
+	VectorCopy( EntVars()->mins, vecMins.Base() );
+	VectorCopy( EntVars()->maxs, vecMaxs.Base() );
+
+	Vector oldorg;
+	Vector neworg;
+
+	VectorCopy( EntVars()->origin, oldorg.Base() );
+	VectorAdd( EntVars()->origin, move.Base(), neworg.Base() );
+
+	// TODO: Flying/Swimming case
+
+	// Try stepping up at most STEPSIZE units
+	Vector traceEnd = neworg - Vector(0, 0, STEPSIZE);
+	neworg.z += STEPSIZE;
+	GoldSRC::TraceResult tr = UTIL_TraceEntityHull( neworg, traceEnd, vecMins, vecMaxs, this );
+
+	if ( tr.fAllSolid )
+		return false;
+
+	// Try from the same height if it was too high
+	if ( tr.fStartSolid )
+	{
+		neworg.z += STEPSIZE;
+		tr = UTIL_TraceEntityHull( neworg, traceEnd, vecMins, vecMaxs, this );
+		if ( tr.fAllSolid || tr.fStartSolid )
+			return 0;
+	}
+
+	if ( tr.flFraction == 1 )
+	{
+		if ( EntVars()->flags & GoldSRC::G_FL_PARTIALGROUND )
+		{
+			VectorAdd( EntVars()->origin, move.Base(), EntVars()->origin);
+			// if ( relink )
+			//	Link( true );
+			EntVars()->flags &= ~GoldSRC::G_FL_ONGROUND;
+			UpdateFromEntVars();
+			return 1;
+		}
+
+		return 0;
+	}
+
+	VectorCopy( tr.vecEndPos, EntVars()->origin );
+
+	// TODO: SV_CheckBottom()
+
+	EntVars()->flags &= ~GoldSRC::G_FL_PARTIALGROUND;
+	EntVars()->groundentity = tr.pHit;
+
+	// if ( relink )
+	//	Link( true );
+
+	UpdateFromEntVars();
 	return 1;
 }
 

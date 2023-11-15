@@ -65,6 +65,15 @@ namespace GoldSRC
 		force_model_specifybounds_if_avail,
 	};
 
+
+	enum SOUND_FLAGS
+	{
+		G_SND_STOP			= ( 1 << 5 ),
+		G_SND_CHANGE_VOL	= ( 1 << 6 ),
+		G_SND_CHANGE_PITCH	= ( 1 << 7 ),
+		G_SND_SPAWNING		= ( 1 << 8 ),
+	};
+
 	struct enginefuncs_t
 	{
 		int					( *pfnPrecacheModel )			( char *s );

@@ -6,6 +6,7 @@
 #include "tier1.h"
 #include "tier2/tier2.h"
 #include "tier3/tier3.h"
+#include "engine/IEngineSound.h"
 #include "engine/IEngineTrace.h"
 #include "engine/ivmodelinfo.h"
 
@@ -14,6 +15,7 @@
 
 IFileSystem *filesystem = NULL;
 IGameEventManager2 *gameeventmanager = NULL;
+IEngineSound *enginesound = NULL;
 IVModelInfo *modelinfo = NULL;
 IEngineTrace *enginetrace = NULL;
 
@@ -36,6 +38,8 @@ bool CBaseServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInterfa
 	if ( ( filesystem = ( IFileSystem * )engineFactory( FILESYSTEM_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( ( gameeventmanager = ( IGameEventManager2 * )engineFactory( INTERFACEVERSION_GAMEEVENTSMANAGER2, NULL ) ) == NULL )
+		return false;
+	if ( ( enginesound = ( IEngineSound * )engineFactory( IENGINESOUND_SERVER_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( ( modelinfo = ( IVModelInfo * )engineFactory( VMODELINFO_SERVER_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;

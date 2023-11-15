@@ -31,6 +31,10 @@ public:
 	void RemoveEntityByIndex( int index );
 	void RemoveEntityByHandle( CBaseHandle hEnt );
 
+	CBaseEntity *GetEntityByIndex( int index );
+
+	void TickEntities();
+
 public:
 	virtual void		FreeContainingEntity( edict_t *pEdict );
 	virtual edict_t		*BaseEntityToEdict( CBaseEntity *pEnt );

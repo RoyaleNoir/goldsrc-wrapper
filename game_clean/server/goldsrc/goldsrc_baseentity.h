@@ -9,7 +9,7 @@
 #include "networkvar.h"
 #include "goldsrc_edict.h"
 #include "goldsrc_collideable_shared.h"
-
+#include "PlayerState.h"
 
 
 //-----------------------------------------------------------------------------
@@ -60,6 +60,12 @@ public:
 	void PostGoldSrcCreate();
 	void PostGoldSrcSpawn();
 
+	void RunTick();
+	bool TryPush( float movetime );
+
+	// Helpers
+public:
+
 	void SetClassName( GoldSRC::string_t iClassName );
 	GoldSRC::string_t GetClassName();
 
@@ -74,10 +80,15 @@ public:
 
 	void UpdateFromEntVars();
 
+	CPlayerState *GetPlayerState();
+	
+	void SetIsPlayer( bool bPlayer );
+	bool IsPlayer();
+
 	// GoldSRC entity interface
 public:
 	void Spawn();
-	void Think();
+	bool Think( float useRealTime = false );
 	void Use( CBaseEntity *pOtherEnt );
 
 	// GoldSRC progs interface
@@ -87,6 +98,7 @@ public:
 	void SetModel( const char *szModelName );
 
 	int DropToFloor();
+	int MoveStep( const Vector &move, bool relink );
 
 	// IHandleEntity
 public:
@@ -138,6 +150,9 @@ private:
 	//QAngle m_v_angle;
 
 	const char *m_szDebugClassName;
+
+	CPlayerState m_PlayerState;
+	bool m_bPlayer;
 };
 
 #endif // GOLDSRC_BASEENTITY_H

@@ -68,7 +68,7 @@ void GoldSRCGlobalVars_Init()
 
 void GoldSRCGlobalVars_Update()
 {
-	g_GoldSRCGlobalVars.realtime = gpGlobals->realtime;
+	g_GoldSRCGlobalVars.realtime = gpGlobals->curtime;
 	g_GoldSRCGlobalVars.frametime = gpGlobals->frametime;
 	//g_GoldSRCGlobalVars.force_retouch
 	g_GoldSRCGlobalVars.mapname = (GoldSRC::string_t)( gpGlobals->mapname.ToCStr() - (int)GoldSRC::SzFromIndex( NULL ) );

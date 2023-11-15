@@ -3,9 +3,13 @@
 #include "goldsrc_baseentity.h"
 #include "goldsrc_eiface.h"
 #include "goldsrc_edict.h"
+#include "filesystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+
+extern IFileSystem *filesystem;
 
 
 #define MAPKEY_MAXLENGTH 2048
@@ -174,6 +178,8 @@ void ParseEntityKeyValues( GoldSRC::edict_t *pEdict, const char *pMapData, char 
 
 	GoldSRC::KeyValueData kv;
 
+	bool bIsMM = !Q_strncmp( szClassName, "multi_manager", MAPKEY_MAXLENGTH );
+
 	while ( pCursor )
 	{
 		pCursor = ParseMapToken( pCursor, szToken );
@@ -184,6 +190,60 @@ void ParseEntityKeyValues( GoldSRC::edict_t *pEdict, const char *pMapData, char 
 
 		pCursor = ParseMapToken( pCursor, szToken );
 		V_strncpy( szValue, szToken, MAPKEY_MAXLENGTH );
+
+		if ( bIsMM && !Q_strncmp( szKey, "OnTrigger", MAPKEY_MAXLENGTH ) )
+		{
+			int firstComma = MAPKEY_MAXLENGTH;
+
+			// Copy over the key until a comma is hit
+			for ( int i = 0; i < MAPKEY_MAXLENGTH - 1; i++ )
+			{
+				if ( !szValue[i] || szValue[i] == ',' )
+				{
+					szKey[i] = '\0';
+					firstComma = i;
+					break;
+				}
+
+				szKey[i] = szValue[i];
+			}
+
+			// Find the second comma
+			int secondComma = MAPKEY_MAXLENGTH;
+			for ( int i = firstComma + 1; i < MAPKEY_MAXLENGTH - 1; i++ )
+			{
+				if ( !szValue[i] || szValue[i] == ',' )
+				{
+					secondComma = i;
+					break;
+				}
+			}
+
+			// Find the third comma
+			int thirdComma = MAPKEY_MAXLENGTH;
+			for ( int i = secondComma + 1; i < MAPKEY_MAXLENGTH - 1; i++ )
+			{
+				if ( !szValue[i] || szValue[i] == ',' )
+				{
+					thirdComma = i;
+					break;
+				}
+			}
+
+			// Copy over the delay
+			int j = 0;
+			for ( int i = thirdComma + 1; i < MAPKEY_MAXLENGTH - 1; i++ )
+			{
+				if ( !szValue[i] || szValue[i] == ',' )
+				{
+					szValue[j] = '\0';
+					break;
+				}
+
+				szValue[j] = szValue[i];
+				j++;
+			}
+		}
 
 		kv.szClassName = szClassName;
 		kv.szKeyName = szKey;
@@ -231,9 +291,60 @@ const char *ParseMapEntity( const char *pMapEntity, char *szTokenBuffer )
 }
 
 
-void ParseMapEntities( const char *pMapEntities )
+struct GoldSRCLump
+{
+	int offset, length;
+};
+
+
+struct GoldSRCHeader
+{
+	int version;
+	GoldSRCLump lumps[15];
+};
+
+
+char *TryLoadGoldSRCEntityLump( const char *pMapName )
+{
+	char szFileName[MAX_PATH];
+	Q_snprintf( szFileName, MAX_PATH, "maps/%s.bsp_g", pMapName );
+
+	FileHandle_t hFile = filesystem->Open( szFileName, "rb", "GAME" );
+	if ( !hFile )
+		return NULL;
+
+	GoldSRCHeader header;
+	filesystem->Read( &header, sizeof( header ), hFile );
+
+	if ( header.version != 30 )
+	{
+		filesystem->Close( hFile );
+		return NULL;
+	}
+
+	int entitesOffset = header.lumps[0].offset;
+	int entitiesSize = header.lumps[0].length;
+
+	char *entitiesLump = (char*)malloc( entitiesSize );
+
+	filesystem->Seek( hFile, entitesOffset, FILESYSTEM_SEEK_HEAD );
+	filesystem->Read( entitiesLump, entitiesSize, hFile );
+
+	filesystem->Close( hFile );
+	return entitiesLump;
+}
+
+
+void ParseMapEntities( const char *pMapName, const char *pMapEntities )
 {
 	char szTokenBuffer[MAPKEY_MAXLENGTH];
+
+	// Try load the goldsrc BSP
+	//char *pGoldSRCEntities = TryLoadGoldSRCEntityLump( pMapName );
+
+	// If it succeeded, just load those entities instead
+	//if ( pGoldSRCEntities )
+	//	pMapEntities = pGoldSRCEntities;
 
 	for ( ; pMapEntities != NULL; pMapEntities = SkipToNextEntity( pMapEntities, szTokenBuffer ) )
 	{
@@ -251,4 +362,8 @@ void ParseMapEntities( const char *pMapEntities )
 		// Parse entity
 		ParseMapEntity( pMapEntities, szTokenBuffer );
 	}
+
+	// free the entity lump
+	//if ( pGoldSRCEntities )
+	//	free( pGoldSRCEntities );
 }

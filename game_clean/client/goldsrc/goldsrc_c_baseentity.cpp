@@ -1,11 +1,20 @@
 #include "cbase.h"
 #include "goldsrc_c_baseentity.h"
 #include "engine/ivmodelinfo.h"
+#include "engine/ivmodelrender.h"
+#include "ivrenderview.h"
+#include "model_types.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
 extern IVModelInfoClient *modelinfo;
+extern IVModelRender *modelrender;
+
+
+void SetActivityForSequence( CStudioHdr *pstudiohdr, int i )
+{
+}
 
 #undef CBaseEntity
 
@@ -43,6 +52,7 @@ C_BaseEntity::C_BaseEntity()
 
 	m_pModel = NULL;
 	m_nModelIndex = 0;
+	m_ModelInstance = MODEL_INSTANCE_INVALID;
 }
 
 
@@ -51,6 +61,12 @@ C_BaseEntity::~C_BaseEntity()
 	if ( m_RefEHandle != CBaseHandle( INVALID_EHANDLE_INDEX ) )
 	{
 		g_pBaseEntityList->RemoveEntityByHandle( m_RefEHandle );
+	}
+
+	if ( m_ModelInstance != MODEL_INSTANCE_INVALID )
+	{
+		modelrender->DestroyInstance( m_ModelInstance );
+		m_ModelInstance = MODEL_INSTANCE_INVALID;
 	}
 }
 
@@ -87,6 +103,12 @@ void C_BaseEntity::SetModelIndex( int nModelIndex )
 {
 	if ( nModelIndex == m_nModelIndex )
 		return;
+
+	if ( m_ModelInstance != MODEL_INSTANCE_INVALID )
+	{
+		modelrender->DestroyInstance( m_ModelInstance );
+		m_ModelInstance = MODEL_INSTANCE_INVALID;
+	}
 
 	m_pModel = modelinfo->GetModel( nModelIndex );
 	m_nModelIndex = nModelIndex;
@@ -229,7 +251,7 @@ QAngle const &C_BaseEntity::GetRenderAngles( void )
 bool C_BaseEntity::ShouldDraw( void )
 {
 	// TODO: Rendering
-	return false;
+	return m_pModel != NULL && m_nEntIndex != 0;
 }
 
 
@@ -276,6 +298,35 @@ const model_t *C_BaseEntity::GetModel() const
 int C_BaseEntity::DrawModel( int flags )
 {
 	// TODO: Rendering
+	
+	if ( !m_pModel )
+		return false;
+
+	int modelType = modelinfo->GetModelType( m_pModel );
+
+	if ( modelType == mod_brush )
+	{
+		render->DrawBrushModel( this, (model_t *)m_pModel, GetAbsOrigin(), GetAbsAngles(), false );
+		return true;
+	}
+
+	if (modelType == mod_studio)
+	{
+		if ( m_ModelInstance == MODEL_INSTANCE_INVALID )
+		{
+			m_ModelInstance = modelrender->CreateInstance( this );
+		}
+
+		if ( IsTwoPass() )
+		{
+			flags |= STUDIO_TWOPASS;
+		}
+
+		int drawn = modelrender->DrawModel( flags, this, m_ModelInstance,m_nEntIndex, m_pModel, GetAbsOrigin(), GetAbsAngles(),GetSkin(), GetBody(), 0 );
+
+		return drawn;
+	}
+	
 	return 0;
 }
 
@@ -310,11 +361,25 @@ void C_BaseEntity::GetColorModulation( float *color )
 bool C_BaseEntity::SetupBones( matrix3x4_t *pBoneToWorldOut, int nMaxBones, int boneMask, float currentTime )
 {
 	// TODO: Rendering
+	if ( !m_pModel || modelinfo->GetModelType( m_pModel ) != mod_studio )
+		return false;
+
+	if ( pBoneToWorldOut )
+	{
+		matrix3x4_t baseMatrix;
+		AngleMatrix( GetRenderAngles(), GetRenderOrigin(), baseMatrix );
+		
+		for ( int i = 0; i < nMaxBones; i++ )
+		{
+			pBoneToWorldOut[i] = baseMatrix;
+		}
+	}
+
 	return true;
 }
 
 
-void C_BaseEntity::SetupWeights(const matrix3x4_t* pBoneToWorld, int nFlexWeightCount, float* pFlexWeights, float* pFlexDelayedWeights)
+void C_BaseEntity::SetupWeights( const matrix3x4_t* pBoneToWorld, int nFlexWeightCount, float* pFlexWeights, float* pFlexDelayedWeights )
 {
 	// TODO: Rendering
 }
@@ -478,7 +543,7 @@ int C_BaseEntity::GetSkin()
 bool C_BaseEntity::IsTwoPass( void )
 {
 	// TODO: Rendering
-	return false;
+	return modelinfo->IsTranslucentTwoPass( m_pModel );
 }
 
 

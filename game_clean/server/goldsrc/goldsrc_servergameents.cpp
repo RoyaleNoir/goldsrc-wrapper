@@ -2,6 +2,7 @@
 #include "goldsrc_servergameents.h"
 #include "goldsrc_baseentity.h"
 #include "goldsrc_edict.h"
+#include "goldsrc_globalvars.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -80,6 +81,42 @@ void CGoldSRCServerGameEnts::RemoveEntityByIndex( int index )
 void CGoldSRCServerGameEnts::RemoveEntityByHandle( CBaseHandle hEnt )
 {
 	RemoveEntityByIndex( hEnt.GetEntryIndex() );
+}
+
+
+CBaseEntity *CGoldSRCServerGameEnts::GetEntityByIndex( int index )
+{
+	if ( index < 0 || index > NUM_ENT_ENTRIES )
+		return NULL;
+
+	return m_entries[index].m_pEntity;
+}
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Runs a tick for every entity.
+//-----------------------------------------------------------------------------
+void CGoldSRCServerGameEnts::TickEntities()
+{
+	// TODO: Faster way to iterate
+	for ( int i = 0; i < NUM_ENT_ENTRIES; i++ )
+	{
+		CBaseEntity *pEntity = m_entries[i].m_pEntity;
+		if ( !pEntity )
+			continue;
+
+		if ( pEntity->IsPlayer() )
+			continue;
+
+		//if ( GlobalVars()->force_retouch )
+		//	pEntity->Link( true );
+
+		pEntity->RunTick();
+		// SV_RunNewmis()
+	}
+
+	if ( GlobalVars()->force_retouch )
+		GlobalVars()->force_retouch--;
 }
 
 

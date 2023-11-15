@@ -7,6 +7,7 @@
 
 namespace GoldSRC
 {
+	typedef unsigned char byte;
 	typedef int int32;
 	typedef int qboolean;
 	typedef float vec3_t[3];
@@ -18,6 +19,7 @@ namespace GoldSRC
 		MAX_MOVEENTS = 64,
 		MAX_CLIP_PLANES = 3,
 		MAX_PHYSINFO_STRING = 256,
+		MAX_MAP_HULLS = 4,
 	};
 
 	// TODO: Should this be here?
@@ -84,7 +86,32 @@ namespace GoldSRC
 
 	struct movevars_t
 	{
-
+		float		gravity;
+		float		stopspeed;
+		float		maxspeed;
+		float		spectatormaxspeed;
+		float		accelerate;
+		float		airaccelerate;
+		float		wateraccelerate;
+		float		friction;
+		float		edgefriction;
+		float		waterfriction;
+		float		entgravity;
+		float		bounce;
+		float		stepsize;
+		float		maxvelocity;
+		float		zmax;
+		float		waveHeight;
+		qboolean	footsteps;
+		char		skyName[32];
+		float		rollangle;
+		float		rollspeed;
+		float		skycolor_r;
+		float		skycolor_g;
+		float		skycolor_b;
+		float		skyvec_x;
+		float		skyvec_y;
+		float		skyvec_z;
 	};
 
 	struct physent_t
@@ -216,7 +243,7 @@ namespace GoldSRC
 		vec3_t		player_mins[4];
 		vec3_t		player_maxs[4];
 
-		const char*	( *pfnPM_Info_ValueForKey )	( const char *s, const char *key );
+		const char*	( *pfnPM_Info_ValueForKey )		( const char *s, const char *key );
 		void		( *pfnPM_Particle )				( float *origin, int color, float life, int zpos, int zvel );
 		int			( *pfnPM_TestPlayerPosition )	( float *pos, pmtrace_t *ptrace );
 		void		( *pfnCon_NPrintf )				( int idx, char *fmt, ... );
@@ -229,7 +256,10 @@ namespace GoldSRC
 		int			( *pfnPM_HullPointContents )	( hull_t *hull, int num, float *p );
 		pmtrace_t	( *pfnPM_PlayerTrace )			( float *start, float *end, int traceFlags, int ignore_pe );
 		pmtrace_t*	( *pfnPM_TraceLine )			( float *start, float *end, int flags, int usehulll, int ignore_pe );
-		int32		( *pfnPM_GetModelType )			( model_t *mod );
+		int32		( *pfnRandomLong )				( int32 lLow, int32 lHigh );
+		float		( *pfnRandomFloat )				( float flLow, float flHigh );
+		int			( *pfnPM_GetModelType )			( model_t *mod );
+		void		( *pfnPM_GetModelBounds )		( model_t *mod, float *mins, float *maxs );
 		void*		( *pfnPM_HullForBsp )			( physent_t *pe, float *offset );
 		float		( *pfnPM_TraceModel )			( physent_t *pe, float *offset );
 		int			( *pfnCOM_FileSize )			( char *filename );

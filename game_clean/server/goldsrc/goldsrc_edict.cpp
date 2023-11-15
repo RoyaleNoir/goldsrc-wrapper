@@ -225,7 +225,7 @@ GoldSRC::edict_t *CGoldSRCEdict::FindByClassName( GoldSRC::edict_t *pStart, cons
 	int i = 0;
 
 	if ( pStart )
-		i = ToIndex( pStart );
+		i = ToIndex( pStart ) + 1;
 
 	for ( ; i < MAX_EDICTS; i++ )
 	{
@@ -240,6 +240,56 @@ GoldSRC::edict_t *CGoldSRCEdict::FindByClassName( GoldSRC::edict_t *pStart, cons
 
 	return NULL;
 }
+
+
+GoldSRC::edict_t *CGoldSRCEdict::FindByTargetName( GoldSRC::edict_t *pStart, const char *szTargetName )
+{
+	int i = 0;
+
+	if ( pStart )
+		i = ToIndex( pStart ) + 1;
+
+	for ( ; i < MAX_EDICTS; i++ )
+	{
+		if ( m_edicts[i].free )
+			continue;
+
+		if ( !Q_strcmp( GoldSRC::SzFromIndex( m_edicts[i].v.targetname ), szTargetName ) )
+		{
+			return &m_edicts[i];
+		}
+	}
+
+	return NULL;
+}
+
+
+GoldSRC::edict_t *CGoldSRCEdict::FindInSphere( GoldSRC::edict_t *pStart, const float *org, float rad )
+{
+	float r2 = rad * rad;	// avoid a sqrt
+
+	int i = 1;
+
+	if ( pStart )
+		i = ToIndex( pStart ) + 1;
+
+	for ( ; i < MAX_EDICTS; i++ )
+	{
+		if ( m_edicts[i].free )
+			continue;
+
+		Vector delta;
+		VectorSubtract( m_edicts[i].v.origin, org, delta.Base() );
+
+		if ( delta.LengthSqr() <= r2 )
+		{
+			return &m_edicts[i];
+		}
+	}
+
+	return NULL;
+}
+
 
 CBaseEntity *CGoldSRCEdict::GetSourceEntity( GoldSRC::edict_t *pGoldSRCEdict )
 {

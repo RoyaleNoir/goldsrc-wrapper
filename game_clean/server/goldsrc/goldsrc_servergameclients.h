@@ -12,6 +12,11 @@ class CGoldSRCServerGameClients : public CBaseServerGameClients
 public:
 	virtual bool	ClientConnect( edict_t *pEntity, const char *pszName, const char *pszAddress, char *reject, int maxrejectlen );
 	virtual void	ClientPutInServer( edict_t *pEntity, char const *playername );
+
+	virtual float	ProcessUsercmds( edict_t *player, bf_read *buf, int numcmds, int totalcmds, int dropped_packets, bool ignore, bool paused );
+
+	virtual			CPlayerState *GetPlayerState( edict_t *player );
+	virtual void	ClientEarPosition( edict_t *pEntity, Vector *pEarOrigin );
 };
 
 #endif // GOLDSRC_SERVERGAMECLIENTS_H

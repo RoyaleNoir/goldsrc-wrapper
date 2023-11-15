@@ -19,6 +19,22 @@ namespace GoldSRC
 		link_t *prev, *next;
 	};
 
+	enum MoveType_t
+	{
+		MOVETYPE_NONE = 0,
+		MOVETYPE_WALK = 3,
+		MOVETYPE_STEP,
+		MOVETYPE_FLY,
+		MOVETYPE_TOSS,
+		MOVETYPE_PUSH,
+		MOVETYPE_NOCLIP,
+		MOVETYPE_FLYMISSILE,
+		MOVETYPE_BOUNCE,
+		MOVETYPE_BOUNCEMISSILE,
+		MOVETYPE_FOLLOW,
+		MOVETYPE_PUSHSTEP
+	};
+
 	struct entvars_t
 	{
 		string_t	classname;
@@ -192,6 +208,9 @@ public:
 	GoldSRC::edict_t	*FromIndex( int index );
 
 	GoldSRC::edict_t	*FindByClassName( GoldSRC::edict_t *pStart, const char *szClassName );
+	GoldSRC::edict_t	*FindByTargetName( GoldSRC::edict_t *pStart, const char *szTargetName );
+
+	GoldSRC::edict_t	*FindInSphere( GoldSRC::edict_t *pStart, const float *org, float rad );
 
 	CBaseEntity			*GetSourceEntity( GoldSRC::edict_t *pGoldSRCEdict );
 
