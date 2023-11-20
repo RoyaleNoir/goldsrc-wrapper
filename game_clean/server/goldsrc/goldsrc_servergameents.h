@@ -32,10 +32,12 @@ public:
 	void RemoveEntityByHandle( CBaseHandle hEnt );
 
 	CBaseEntity *GetEntityByIndex( int index );
+	CBaseEntity *GetEntityByHandle( CBaseHandle hEnt );
 
 	void TickEntities();
 
 public:
+	virtual void		MarkEntitiesAsTouching( edict_t* e1, edict_t* e2 );
 	virtual void		FreeContainingEntity( edict_t *pEdict );
 	virtual edict_t		*BaseEntityToEdict( CBaseEntity *pEnt );
 	virtual CBaseEntity	*EdictToBaseEntity( edict_t *pEdict );

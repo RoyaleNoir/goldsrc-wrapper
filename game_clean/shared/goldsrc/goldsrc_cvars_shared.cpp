@@ -1,9 +1,10 @@
 #include "cbase.h"
-#include "goldsrc_cvars.h"
+#include "goldsrc_cvars_shared.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+#if !defined( CLIENT_DLL )
 // These ones are read directly by hl.dll
 GoldSRC::cvar_t sv_gravity = { "sv_gravity", "800" };
 GoldSRC::cvar_t mp_footsteps = { "mp_footsteps", "1" };
@@ -19,6 +20,7 @@ ConVar sv_maxvelocity( "sv_maxvelocity", "2000" );
 
 // hl1
 ConVar suitvolume( "suitvolume", "1" );
+#endif
 
 
 static CGoldSRCCVars g_GoldSRCCVars;
@@ -38,9 +40,11 @@ CGoldSRCCVars::~CGoldSRCCVars()
 
 void CGoldSRCCVars::Init()
 {
+#if !defined( CLIENT_DLL )
 	Register( &sv_gravity, false );
 	Register( &mp_footsteps, false );
 	Register( &sv_aim, false );
+#endif
 }
 
 
@@ -88,7 +92,11 @@ void CGoldSRCCVars::Register( GoldSRC::cvar_t *pCvar, bool bFromDLL )
 	// Mark this as added by the EXTDLL
 	if ( bFromDLL )
 	{
+#if defined( CLIENT_DLL )
+		pCvar->flags |= GoldSRC::G_FCVAR_CLIENTDLL;
+#else
 		pCvar->flags |= GoldSRC::G_FCVAR_EXTDLL;
+#endif
 	}
 
 	// Register ConVar
@@ -103,6 +111,29 @@ void CGoldSRCCVars::Register( GoldSRC::cvar_t *pCvar, bool bFromDLL )
 void CGoldSRCCVars::RegisterVariable( GoldSRC::cvar_t *variable )
 {
 	LOG_STUB();
+}
+
+GoldSRC::cvar_t *CGoldSRCCVars::RegisterVariable( char *szName, char *szValue, int flags )
+{
+	GoldSRC::cvar_t *pCvar = new GoldSRC::cvar_t;
+
+	// Copy name
+	int nNameLength = Q_strlen( szName );
+	pCvar->name = (char *)malloc( nNameLength + 1 );
+	Q_strcpy( pCvar->name, szName );
+
+	// Copy string
+	int nStringLength = Q_strlen( szValue );
+	pCvar->string = (char *)malloc( nStringLength + 1 );
+	Q_strcpy( pCvar->string, szValue );
+
+	pCvar->flags = flags;
+
+	// Set value
+	pCvar->value = atof( szValue );
+
+	m_OwnedCVars.AddToTail( pCvar );
+	return pCvar;
 }
 
 

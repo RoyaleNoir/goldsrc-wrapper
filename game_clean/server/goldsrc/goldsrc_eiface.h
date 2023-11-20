@@ -296,7 +296,7 @@ namespace GoldSRC
 		int			( *Spawn )						( edict_t *pent );
 		void		( *Think )						( edict_t *pent );
 		void		( *Use )						( edict_t *pentUsed, edict_t *pentOther );
-		void		( *pfnTouch )					( edict_t *pentTouched, edict_t *pentOther );
+		void		( *Touch )						( edict_t *pentTouched, edict_t *pentOther );
 		void		( *pfnBlocked )					( edict_t *pentBlocked, edict_t *pentOther );
 		void		( *pfnKeyValue )				( edict_t *pentKeyvalue, KeyValueData *pkvd );
 		void		( *pfnSave )					( edict_t *pent, SAVERESTOREDATA *pSaveData );

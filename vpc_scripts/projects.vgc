@@ -73,6 +73,11 @@ $Project "qc_eyes"
 	"utils\qc_eyes\qc_eyes.vpc" [$WIN32]
 }
 
+$Project "sdl2_stub"
+{
+	"stubs\sdl2\sdl2.vpc"
+}
+
 $Project "serverplugin_empty"
 {
 	"utils\serverplugin_sample\serverplugin_empty.vpc" [$WIN32||$POSIX]
@@ -96,6 +101,11 @@ $Project "vbsp"
 $Project "vgui_controls"
 {
 	"vgui2\vgui_controls\vgui_controls.vpc" [$WIN32||$X360||$POSIX]
+}
+
+$Project "vgui_stub"
+{
+	"stubs\vgui\vgui.vpc"
 }
 
 $Project "vice"

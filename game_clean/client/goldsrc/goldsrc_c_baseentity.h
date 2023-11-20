@@ -7,6 +7,7 @@
 
 #include "icliententity.h"
 #include "goldsrc_collideable_shared.h"
+#include "goldsrc_cl_entity.h"
 
 #if defined( CLIENT_DLL )
 #define CBaseEntity C_BaseEntity
@@ -22,10 +23,13 @@ public:
 	C_BaseEntity();
 	virtual ~C_BaseEntity();
 
+	GoldSRC::cl_entity_t *ClEnt();
+
 	bool Init( int entnum, int iSerialNum );
 	virtual void Release() override;
 
 	const Vector &GetViewOffset() const;
+	const Vector &GetVelocity() const;
 
 	matrix3x4_t &EntityToWorldTransform();
 
@@ -147,12 +151,21 @@ private:
 	QAngle m_angles;
 	Vector m_view_ofs;
 
+	Vector m_velocity;
+
 	matrix3x4_t m_entityToWorld;
 
 	ClientThinkHandle_t m_hThinkHandle;
 	ClientRenderHandle_t m_hRenderHandle;
 
 	ModelInstanceHandle_t m_ModelInstance;
+
+	// Rendering
+	float m_renderamt;
+	int m_rendermode;
+
+private:
+	GoldSRC::cl_entity_t m_ClEnt;
 };
 
 
@@ -174,6 +187,7 @@ public:
 	void RemoveEntityByHandle( CBaseHandle hEnt );
 
 	C_BaseEntity *GetEntityByIndex( int index );
+	C_BaseEntity *GetLocalPlayer();
 
 	void ReleaseAllEntities();
 

@@ -26,6 +26,10 @@ public:
 
 	void ProcessUsercmds( CBaseEntity *pEntity, CUserCmdList *cmdlists, int numcmds, int totalcmds, int dropped_packets, bool paused );
 
+	void AddAllEntities( CBaseEntity *pPlayer, Vector &vecMins, Vector &vecMaxs );
+
+	void GetHull( int hullType, Vector &vecMins, Vector &vecMaxs );
+
 private:
 	void RunUserCmd( CBaseEntity *pEntity, GoldSRC::usercmd_t *pCmd );
 
@@ -67,6 +71,8 @@ private:
 private:
 	GoldSRC::playermove_t m_playerMove;
 	GoldSRC::usercmd_t m_cmd;
+
+	int m_nPhysEntForEntNum[MAX_EDICTS];
 };
 
 extern CGoldSRCPlayerMove *g_pGoldSRCPlayerMove;

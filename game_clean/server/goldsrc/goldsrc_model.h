@@ -7,4 +7,10 @@
 
 #include "goldsrc_studio_shared.h"
 
+class CStudioHdr;
+
+extern GoldSRC::studiohdr_t *WrapStudioModel( CStudioHdr *pHdr );
+
+extern void UnwrapStudioModel( GoldSRC::studiohdr_t *pModel );
+
 #endif // GOLDSRC_MODEL_H

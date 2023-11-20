@@ -7,9 +7,11 @@
 
 #include "iserverentity.h"
 #include "networkvar.h"
+#include "goldsrc_eiface.h"
 #include "goldsrc_edict.h"
 #include "goldsrc_collideable_shared.h"
 #include "PlayerState.h"
+#include "goldsrc_model.h"
 
 
 //-----------------------------------------------------------------------------
@@ -62,6 +64,15 @@ public:
 
 	void RunTick();
 	bool TryPush( float movetime );
+	GoldSRC::TraceResult TryMove( Vector &move );
+
+	void AddGravity( float scale );
+	void CheckVelocity();
+	void ClipVelocity( GoldSRC::vec3_t inVel, GoldSRC::vec3_t normal, GoldSRC::vec3_t outVel, float overbounce );
+
+	void Impact( CBaseEntity *pOther );
+
+	void Relink( bool touchTriggers );
 
 	// Helpers
 public:
@@ -85,11 +96,14 @@ public:
 	void SetIsPlayer( bool bPlayer );
 	bool IsPlayer();
 
+	CCollideable *GetCCollideable() { return &m_Collideable; }
+
 	// GoldSRC entity interface
 public:
 	void Spawn();
 	bool Think( float useRealTime = false );
 	void Use( CBaseEntity *pOtherEnt );
+	void Touch( CBaseEntity *pOtherEnt );
 
 	// GoldSRC progs interface
 public:
@@ -99,6 +113,17 @@ public:
 
 	int DropToFloor();
 	int MoveStep( const Vector &move, bool relink );
+
+	bool StepDirection( float yaw, float dist );
+	void NewChaseDir( const float *pflGoal, float dist );
+	void MoveToGoal( const float *pflGoal, float dist, int iMovetype );
+
+	void ChangeYaw();
+
+	void *GetModelPtr();
+	void GetBonePosition( int iBone, float *rgflOrigin, float *rgflAngles );
+
+	const model_t *GetSourceModel();
 
 	// IHandleEntity
 public:
@@ -145,14 +170,23 @@ private:
 	CNetworkQAngle( m_angles );
 	CNetworkVector( m_view_ofs );
 
+	CNetworkVector( m_velocity );
+
 	// Player entvars
 	// SEND THESE VIA USERCMD?
 	//QAngle m_v_angle;
+
+
+	// Rendering entvars
+	CNetworkVar( float, m_renderamt );
+	CNetworkVar( int, m_rendermode );
 
 	const char *m_szDebugClassName;
 
 	CPlayerState m_PlayerState;
 	bool m_bPlayer;
+
+	GoldSRC::studiohdr_t *m_pGoldSRCModel;
 };
 
 #endif // GOLDSRC_BASEENTITY_H

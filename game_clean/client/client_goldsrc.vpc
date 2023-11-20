@@ -44,8 +44,11 @@ $Project "Client (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_cdll_int.cpp"
 			$File	"goldsrc\goldsrc_clientdll.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_cvars_shared.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.cpp"
 			$File	"goldsrc\goldsrc_input.cpp"
+			$File	"goldsrc\goldsrc_sprites.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_usermessages_shared.cpp"
 		}
 	}
 
@@ -55,10 +58,15 @@ $Project "Client (GoldSRC Wrapper)"
 		{
 			$File	"goldsrc\goldsrc_c_baseentity.h"
 			$File	"goldsrc\goldsrc_cdll_int.h"
+			$File	"goldsrc\goldsrc_cl_entity.h"
 			$File	"goldsrc\goldsrc_clientdll.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_cvars_shared.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_playermove_shared.h"
 			$File	"goldsrc\goldsrc_input.h"
+			$File	"goldsrc\goldsrc_render.h"
+			$File	"goldsrc\goldsrc_sprites.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_usermessages_shared.h"
 		}
 	}
 
@@ -67,6 +75,7 @@ $Project "Client (GoldSRC Wrapper)"
 		$Folder "GoldSRC"
 		{
 			$File	"$SRCDIR\public\goldsrc\goldsrc_const.h"
+			$File	"$SRCDIR\public\vgui_stub\vgui_stub.h"
 		}
 	}
 

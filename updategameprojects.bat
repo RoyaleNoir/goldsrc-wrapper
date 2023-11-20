@@ -1,3 +1,3 @@
-devtools\bin\vpc.exe /cleanbase /goldsrc +client +server
+devtools\bin\vpc.exe /goldsrc +client +server +sdl2_stub +vgui_stub
 pause
 

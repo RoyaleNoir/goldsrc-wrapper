@@ -1,0 +1,44 @@
+//-----------------------------------------------------------------------------
+//	VGUI.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro OUTBINNAME	"vgui"
+$Macro OUTBINDIR	"$SRCDIR\..\game\goldsrc\bin"
+
+$Include	"$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Configuration
+{
+	$Compiler
+	{
+		$PreprocessorDefinitions	"$BASE;VGUI_STUB_EXPORTS"
+	}
+}
+
+$Project "VGUI Stub"
+{
+	$Folder	"Source Files"
+	{
+		-$File	"$SRCDIR\public\tier0\memoverride.cpp"
+		-$File	"$SRCDIR\public\tier0\pointeroverride.asm" [$WIN32]
+
+		$File	"vgui_stub.cpp"
+	}
+
+	$Folder	"Header Files"
+	{
+		$File	"dar.h"
+		$File	"vgui_export.h"
+		$File	"$SRCDIR\public\vgui_stub\vgui_stub.h"
+	}
+
+	$Folder	"Link Libraries"
+	{
+		-$Implib	"$LIBPUBLIC\tier0"
+		-$Lib		"$LIBPUBLIC\tier1"
+		-$Implib	"$LIBPUBLIC\vstdlib"
+	}
+}

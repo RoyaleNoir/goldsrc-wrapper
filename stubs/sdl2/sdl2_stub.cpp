@@ -1,0 +1,9 @@
+// SDL_GameControllerGetAxis
+// SDL_GameControllerClose
+// SDL_GameControllerName
+// SDL_JoystickUpdate
+// SDL_GameControllerGetButton
+// SDL_GetRelativeMouseState
+// SDL_NumJoysticks
+// SDL_IsGameController
+// SDL_GameControllerOpen

@@ -1,5 +1,6 @@
 #include "cbase.h"
 #include "goldsrc_servergameclients.h"
+#include "goldsrc_servergameents.h"
 #include "goldsrc_baseentity.h"
 #include "goldsrc_edict.h"
 #include "goldsrc_eiface.h"
@@ -11,7 +12,8 @@
 
 
 static CGoldSRCServerGameClients g_ServerGameClients;
-extern CBaseServerGameClients *g_pServerGameClients = &g_ServerGameClients;
+CBaseServerGameClients *g_pServerGameClients = &g_ServerGameClients;
+CGoldSRCServerGameClients *g_pGoldSRCGameClients = &g_ServerGameClients;
 
 EXPOSE_SINGLE_INTERFACE_GLOBALVAR( CGoldSRCServerGameClients, IServerGameClients, INTERFACEVERSION_SERVERGAMECLIENTS, g_ServerGameClients );
 
@@ -52,6 +54,15 @@ void CGoldSRCServerGameClients::ClientPutInServer( edict_t *pEntity, char const 
 	pBaseEntity->PostGoldSrcCreate();
 	pBaseEntity->PostGoldSrcSpawn();
 }
+
+static int g_nCommandClient = 0;
+
+
+void CGoldSRCServerGameClients::SetCommandClient( int index )
+{
+	g_nCommandClient = index;
+}
+
 
 #define READ_DELTA_I( x, t, b, s ) if ( buf->ReadOneBit() )\
 {\
@@ -176,3 +187,30 @@ void CGoldSRCServerGameClients::ClientEarPosition( edict_t *pEntity, Vector *pEa
 
 	VectorAdd( pPlayer->EntVars()->origin, pPlayer->EntVars()->view_ofs, pEarOrigin->Base() );
 }
+
+CBaseEntity *CGoldSRCServerGameClients::GetCommandClient()
+{
+	if ( g_nCommandClient == -1 )
+		return NULL;
+
+	return g_pGoldSRCServerGameEnts->GetEntityByIndex( g_nCommandClient + 1 );
+}
+
+
+static void SV_Noclip_f()
+{
+	CBaseEntity *pPlayer = g_pGoldSRCGameClients->GetCommandClient();
+	if ( !pPlayer )
+		return;
+
+	if ( pPlayer->EntVars()->movetype != GoldSRC::MOVETYPE_NOCLIP )
+	{
+		pPlayer->EntVars()->movetype = GoldSRC::MOVETYPE_NOCLIP;
+	}
+	else
+	{
+		pPlayer->EntVars()->movetype = GoldSRC::MOVETYPE_WALK;
+	}
+}
+
+static ConCommand noclip( "noclip", SV_Noclip_f, "", FCVAR_CHEAT );

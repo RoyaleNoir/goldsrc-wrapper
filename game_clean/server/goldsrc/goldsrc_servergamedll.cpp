@@ -9,6 +9,8 @@
 #include "goldsrc_mapentities.h"
 #include "goldsrc_playermove_server.h"
 #include "goldsrc_sentences.h"
+#include "goldsrc_usermessages_shared.h"
+#include "networkstringtabledefs.h"
 
 #if defined( _WIN32 )
 #include "winlite.h"
@@ -16,6 +18,8 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
+INetworkStringTableContainer *networkstringtable = NULL;
 
 static CGoldSRCServerGameDLL g_ServerGameDLL;
 CBaseServerGameDLL *g_pServerGameDLL = g_pServerGameDLL;
@@ -66,6 +70,9 @@ bool CGoldSRCServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInte
 	if ( !bRet )
 		return false;
 
+	if ( (networkstringtable = (INetworkStringTableContainer *)engineFactory( INTERFACENAME_NETWORKSTRINGTABLESERVER, NULL ) ) == NULL )
+		return false;
+
 	gpGlobals = pGlobals;
 	GoldSRCGlobalVars_Init();
 
@@ -114,18 +121,18 @@ bool CGoldSRCServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInte
 	g_pGoldSRCCVars->Init();
 	g_pGoldSRCEdict->Init();
 
+	PartitionQueryCallBackInit();
+
 	// GameInit() seems to be called here
 	g_pGoldSRCEntityInterface->GameInit();
 	g_pGoldSRCPlayerMove->Init();
-
-	SentencesManager()->LoadSentences( "sounds/sentences.txt" );
 
 	return true;
 }
 
 void CGoldSRCServerGameDLL::DLLShutdown( void )
 {
-	SentencesManager()->UnloadSentences();
+	PartitionQueryCallBackShutdown();
 
 	g_pGoldSRCCVars->Shutdown();
 
@@ -141,6 +148,8 @@ void CGoldSRCServerGameDLL::DLLShutdown( void )
 
 void CGoldSRCServerGameDLL::ServerActivate( edict_t *pEdictList, int edictCount, int clientMax )
 {
+	SentencesManager()->LoadSentences( "sound/sentences.txt" );
+
 	GoldSRCGlobalVars_Update();
 
 	g_pGoldSRCEntityInterface->ServerActivate( NULL, 0, 0 );
@@ -152,6 +161,7 @@ void CGoldSRCServerGameDLL::GameShutdown( void )
 	g_pGoldSRCEntityInterface->ServerDeactivate();
 	g_pGoldSRCServerGameEnts->ReleaseAll();
 	g_pGoldSRCEdict->EnsureAllFreed();
+	SentencesManager()->UnloadSentences();
 	GoldSRC::FreeStrings();
 }
 
@@ -173,6 +183,7 @@ bool CGoldSRCServerGameDLL::LevelInit( const char *pMapName, char const *pMapEnt
 
 void CGoldSRCServerGameDLL::LevelShutdown( void )
 {
+	PartitionQueryCallBackLevelShutdownPostEntity();
 }
 
 
@@ -189,6 +200,18 @@ void CGoldSRCServerGameDLL::GameFrame( bool simulating )
 		g_pGoldSRCEntityInterface->StartFrame();
 		g_pGoldSRCServerGameEnts->TickEntities();
 	}
+}
+
+
+bool CGoldSRCServerGameDLL::GetUserMessageInfo( int msg_type, char *name, int maxnamelength, int &size )
+{
+	return UserMessages()->GetMessageInfo( msg_type, name, maxnamelength, size );
+}
+
+
+void CGoldSRCServerGameDLL::CreateNetworkStringTables( void )
+{
+	UserMessages()->CreateStringTable();
 }
 
 

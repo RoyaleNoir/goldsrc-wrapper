@@ -1,0 +1,33 @@
+//-----------------------------------------------------------------------------
+//	SDL.VPC
+//
+//	Project Script
+//-----------------------------------------------------------------------------
+
+$Macro SRCDIR		"..\.."
+$Macro OUTBINNAME	"sdl2"
+$Macro OUTBINDIR	"$SRCDIR\..\game\goldsrc\bin"
+
+$Include	"$SRCDIR\vpc_scripts\source_dll_base.vpc"
+
+$Project "SDL2 Stub"
+{
+	$Folder	"Source Files"
+	{
+		-$File	"$SRCDIR\public\tier0\memoverride.cpp"
+		-$File	"$SRCDIR\public\tier0\pointeroverride.asm" [$WIN32]
+		
+		$File	"sdl2_stub.cpp"
+	}
+
+	$Folder	"Header Files"
+	{
+	}
+
+	$Folder	"Link Libraries"
+	{
+		-$Implib	"$LIBPUBLIC\tier0"
+		-$Lib		"$LIBPUBLIC\tier1"
+		-$Implib	"$LIBPUBLIC\vstdlib"
+	}
+}

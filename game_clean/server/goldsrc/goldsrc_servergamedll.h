@@ -22,6 +22,9 @@ public:
 	virtual void		GameFrame( bool simulating );
 
 	virtual const char	*GetGameDescription( void );
+	virtual void		CreateNetworkStringTables( void );
+
+	virtual bool	GetUserMessageInfo( int msg_type, char *name, int maxnamelength, int &size );
 };
 
 #endif // GOLDSRC_SERVERGAMEDLL_H

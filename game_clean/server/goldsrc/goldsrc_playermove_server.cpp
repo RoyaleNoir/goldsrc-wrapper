@@ -128,6 +128,11 @@ void CGoldSRCPlayerMove::Init()
 		g_pGoldSRCEntityInterface->pfnGetHullBounds( i, m_playerMove.player_mins[i], m_playerMove.player_maxs[i] );
 	}
 
+	for ( int i = 0; i < MAX_EDICTS; i++ )
+	{
+		m_nPhysEntForEntNum[i] = -1;
+	}
+
 	g_pGoldSRCEntityInterface->pfnPM_Init( &m_playerMove );
 }
 
@@ -147,6 +152,78 @@ void CGoldSRCPlayerMove::ProcessUsercmds( CBaseEntity *pEntity, CUserCmdList *cm
 		}
 	}
 }
+
+
+//-----------------------------------------------------------------------------
+// Purpose: Sets up the physents for this frame.
+//-----------------------------------------------------------------------------
+void CGoldSRCPlayerMove::AddAllEntities( CBaseEntity *pPlayer, Vector &vecMins, Vector &vecMaxs )
+{
+	// AddAllEntsToPMove
+
+	// Copy in the world
+	m_playerMove.physents[0].model = NULL;	// TODO: World model
+	VectorClear( m_playerMove.physents[0].origin );
+	m_playerMove.physents[0].info = 0;
+	m_nPhysEntForEntNum[0] = 0;
+	m_playerMove.numphysent = 1;
+
+	// Copy in the other ents
+	for ( int i = 1; i < MAX_EDICTS; i++ )
+	{
+		m_nPhysEntForEntNum[i] = -1;
+
+		CBaseEntity *pEntity = g_pGoldSRCServerGameEnts->GetEntityByIndex( i );
+		if ( !pEntity || pEntity == pPlayer )
+			continue;
+
+
+		GoldSRC::entvars_t *pVars = pEntity->EntVars();
+
+		// Nothing owned by the player
+		if ( pVars->owner == pPlayer->GoldSrcEdict() )
+			continue;
+
+		// Only solid things
+		if ( pVars->solid != GoldSRC::SOLID_BSP && pVars->solid != GoldSRC::SOLID_BBOX && pVars->solid != GoldSRC::SOLID_SLIDEBOX )
+			continue;
+
+		// Make sure it's in bounds
+		if ( pVars->absmax[0] < vecMins.x || pVars->absmin[0] > vecMaxs.x )
+			continue;
+		if ( pVars->absmax[1] < vecMins.y || pVars->absmin[1] > vecMaxs.y )
+			continue;
+		if ( pVars->absmax[2] < vecMins.z || pVars->absmin[2] > vecMaxs.z )
+			continue;
+
+		m_nPhysEntForEntNum[i] = m_playerMove.numphysent;
+		GoldSRC::physent_t *pPhys = &m_playerMove.physents[m_playerMove.numphysent++];
+
+		VectorCopy( pVars->origin, pPhys->origin );
+		pPhys->info = i;
+
+		//if ( pVars->solid == GoldSRC::SOLID_BSP )
+		//{
+		//}
+		//else
+		{
+			pPhys->model = NULL;
+			VectorCopy( pVars->mins, pPhys->mins );
+			VectorCopy( pVars->mins, pPhys->mins );
+		}
+
+		if ( m_playerMove.numphysent >= GoldSRC::MAX_PHYSENTS )
+			break;
+	}
+}
+
+
+void CGoldSRCPlayerMove::GetHull( int hullType, Vector &vecMins, Vector &vecMaxs )
+{
+	VectorCopy( m_playerMove.player_mins[hullType], vecMins.Base() );
+	VectorCopy( m_playerMove.player_maxs[hullType], vecMaxs.Base() );
+}
+
 
 void CGoldSRCPlayerMove::RunUserCmd( CBaseEntity *pEntity, GoldSRC::usercmd_t *pCmd )
 {
@@ -173,11 +250,12 @@ void CGoldSRCPlayerMove::RunUserCmd( CBaseEntity *pEntity, GoldSRC::usercmd_t *p
 	{
 		VectorCopy( pCmd->viewangles, pEntity->EntVars()->v_angle );
 		VectorCopy( pCmd->viewangles, pEntity->EntVars()->angles );
-		pEntity->EntVars()->angles[PITCH] /= -3;
+		//pEntity->EntVars()->angles[PITCH] /= -3;
 	}
 	pEntity->EntVars()->angles[ROLL] = pEntity->EntVars()->v_angle[ROLL];
 
 	pEntity->EntVars()->button = pCmd->buttons;
+	pEntity->EntVars()->impulse = pCmd->impulse;
 
 	// Run the player think
 	g_pGoldSRCEntityInterface->pfnPlayerPreThink( pEntity->GoldSrcEdict() );
@@ -190,8 +268,24 @@ void CGoldSRCPlayerMove::RunUserCmd( CBaseEntity *pEntity, GoldSRC::usercmd_t *p
 
 	//Msg( "%f %f\n", m_playerMove.frametime, gpGlobals->frametime );
 
-	// TODO: Link and Touch
+	// TODO: PM Touches
 	pEntity->UpdateFromEntVars();
+	pEntity->Relink( true );
+
+	for ( int i = 0; i < m_playerMove.numtouch; i++ )
+	{
+		GoldSRC::pmtrace_t tr = m_playerMove.touchindex[i];
+
+		if ( tr.ent <= 0 )
+			continue;
+
+		int entindex = m_playerMove.physents[tr.ent].info;
+
+		CBaseEntity *pTouchedEnt = g_pGoldSRCServerGameEnts->GetEntityByIndex( entindex );
+
+		if ( pTouchedEnt )
+			pTouchedEnt->Touch( pEntity );
+	}
 
 	g_pGoldSRCEntityInterface->pfnPlayerPostThink( pEntity->GoldSrcEdict() );
 	g_pGoldSRCEntityInterface->pfnCmdEnd( pEntity->GoldSrcEdict() );
@@ -212,6 +306,12 @@ void CGoldSRCPlayerMove::SetupPlayerMove( CBaseEntity *pEntity, GoldSRC::usercmd
 	// m_playerMove.up				(HANDLED IN DLL)
 
 	VectorCopy( pEntity->EntVars()->origin, m_playerMove.origin );
+
+	Vector vecMins, vecMaxs;
+	VectorAdd( m_playerMove.origin, Vector(-256).Base(), vecMins.Base() );
+	VectorAdd( m_playerMove.origin, Vector(256).Base(), vecMaxs.Base() );
+	AddAllEntities( pEntity, vecMins, vecMaxs );
+
 	VectorCopy( pEntity->EntVars()->v_angle, m_playerMove.angles );
 	VectorCopy( pEntity->EntVars()->v_angle, m_playerMove.oldangles );
 	VectorCopy( pEntity->EntVars()->velocity, m_playerMove.velocity );
@@ -239,15 +339,15 @@ void CGoldSRCPlayerMove::SetupPlayerMove( CBaseEntity *pEntity, GoldSRC::usercmd
 	m_playerMove.gravity = pEntity->EntVars()->gravity;
 	m_playerMove.friction = pEntity->EntVars()->friction;
 	m_playerMove.oldbuttons = pEntity->EntVars()->oldbuttons;
-	//waterjumptime
-	//dead
-	//deaflag
-	//spectator
+	m_playerMove.waterjumptime = pEntity->EntVars()->teleport_time;
+	m_playerMove.dead = pEntity->EntVars()->health <= 0;
+	//m_playerMove.deadflag
+	//m_playerMove.spectator
 	m_playerMove.movetype = pEntity->EntVars()->movetype;
 
 	m_playerMove.onground = -1;	// Hack
-	//waterlevel
-	//watertype
+	m_playerMove.waterlevel = pEntity->EntVars()->waterlevel;
+	m_playerMove.watertype = pEntity->EntVars()->watertype;
 	//oldwaterlevel	(HANDLED IN DLL)
 
 	//sztexturename
@@ -282,7 +382,8 @@ void CGoldSRCPlayerMove::ApplyPlayerMove( CBaseEntity *pEntity )
 	if ( !pEntity->EntVars()->fixangle )
 	{
 		VectorCopy( m_playerMove.angles, pEntity->EntVars()->angles );
-		pEntity->EntVars()->angles[PITCH] = -pEntity->EntVars()->v_angle[PITCH] / 3;
+		//pEntity->EntVars()->angles[PITCH] = -pEntity->EntVars()->v_angle[PITCH] / 3;
+		pEntity->EntVars()->angles[PITCH] = pEntity->EntVars()->v_angle[PITCH];
 		pEntity->EntVars()->angles[YAW] = pEntity->EntVars()->v_angle[YAW];
 	}
 	pEntity->EntVars()->angles[ROLL] = pEntity->EntVars()->v_angle[ROLL];
@@ -418,8 +519,42 @@ int CGoldSRCPlayerMove::PM_HullPointContents( GoldSRC::hull_t *hull, int num, fl
 }
 
 
+class CPMTraceFilter : public CTraceFilter
+{
+public:
+	CPMTraceFilter( CBaseEntity *pIgnoreEnt, int *pEntNums )
+	{
+		m_pIgnoreEnt = pIgnoreEnt;
+		m_pEntNums = pEntNums;
+	}
+
+	bool ShouldHitEntity( IHandleEntity *pServerEntity, int contentsMask )
+	{
+		CBaseEntity *pEntity = (CBaseEntity *)pServerEntity;
+		if ( !pEntity || pEntity == m_pIgnoreEnt )
+			return false;
+
+		if ( !m_pEntNums )
+			return true;
+
+		if ( m_pEntNums[pEntity->GetSourceEdict()->m_EdictIndex] == -1 )
+			return false;
+
+ 		return true;
+	}
+
+private:
+	CBaseEntity *m_pIgnoreEnt;
+	int *m_pEntNums;
+};
+
+
 GoldSRC::pmtrace_t CGoldSRCPlayerMove::PM_PlayerTrace( float *start, float *end, int traceFlags, int ignore_pe )
 {
+	// PM_PlayerMove
+
+	// TODO: Actually implement proper logic instead of passing through to the engine
+
 	GoldSRC::playermove_t *pMove = &g_pGoldSRCPlayerMove->m_playerMove;
 
 	Vector vecStart = *(Vector*)start;
@@ -428,7 +563,7 @@ GoldSRC::pmtrace_t CGoldSRCPlayerMove::PM_PlayerTrace( float *start, float *end,
 	Vector vecMaxs = *(Vector*)pMove->player_maxs[pMove->usehull];
 
 	// Temp as hell
-	CTraceFilterWorldOnly filter;
+	CPMTraceFilter filter( g_pGoldSRCServerGameEnts->GetEntityByIndex( ignore_pe ), g_pGoldSRCPlayerMove->m_nPhysEntForEntNum );
 	trace_t tr;
 
 	Ray_t ray;
@@ -446,9 +581,14 @@ GoldSRC::pmtrace_t CGoldSRCPlayerMove::PM_PlayerTrace( float *start, float *end,
 	VectorCopy( tr.plane.normal.Base(), ptr.plane.normal);
 	ptr.plane.dist = tr.plane.dist;
 
-	ptr.ent = tr.m_pEnt ? 0 : -1;	// TEMP
+	ptr.ent = -1;
 	//ptr.deltavelocity	-- Handled by DLL
 	//ptr.hitgroup -- Unused
+
+	if ( tr.m_pEnt )
+	{
+		ptr.ent = g_pGoldSRCPlayerMove->m_nPhysEntForEntNum[tr.m_pEnt->GetSourceEdict()->m_EdictIndex];
+	}
 
 	return ptr;
 }
@@ -622,10 +762,10 @@ const char *CGoldSRCPlayerMove::PM_TraceTexture( int ground, float *vstart, floa
 
 	// Find the first slash
 	// TODO: This should probably be the last slash
-	const char *firstSlash = Q_strstr( tr.surface.name, "/" ) + 1;
+	const char *firstSlash = Q_strstr( tr.surface.name, "/" );
 
 	if ( firstSlash )
-		return firstSlash;
+		return firstSlash + 1;
 
 	return tr.surface.name;
 }

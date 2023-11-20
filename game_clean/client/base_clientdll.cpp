@@ -7,6 +7,7 @@
 #include "tier1.h"
 #include "tier2/tier2.h"
 #include "tier3/tier3.h"
+#include "filesystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -17,6 +18,7 @@ IVRenderView *render = NULL;
 IVModelInfoClient *modelinfo = NULL;
 IVModelRender *modelrender = NULL;
 CGlobalVarsBase *gpGlobals = NULL;
+IFileSystem *filesystem = NULL;
 
 
 int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physicsFactory, CGlobalVarsBase *pGlobals )
@@ -41,6 +43,8 @@ int CBaseClientDLL::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn 
 	if ( (modelinfo = (IVModelInfoClient *)appSystemFactory( VMODELINFO_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( (modelrender = (IVModelRender *)appSystemFactory( VENGINE_HUDMODEL_INTERFACE_VERSION, NULL ) ) == NULL )
+		return false;
+	if ( (filesystem = (IFileSystem *)appSystemFactory( FILESYSTEM_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 
 	return true;

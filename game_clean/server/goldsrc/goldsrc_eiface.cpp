@@ -2,9 +2,11 @@
 #include "goldsrc_eiface.h"
 #include "goldsrc_baseentity.h"
 #include "goldsrc_servergameents.h"
-#include "goldsrc_cvars.h"
+#include "goldsrc_cvars_shared.h"
 #include "goldsrc_edict.h"
 #include "goldsrc_globalvars.h"
+#include "goldsrc_trace.h"
+#include "goldsrc_usermessages_shared.h"
 #include "engine/IEngineSound.h"
 #include "engine/IEngineTrace.h"
 #include "engine/ivmodelinfo.h"
@@ -59,7 +61,7 @@ namespace GoldSRC
 	int PrecacheModel( char *s )
 	{
 		if ( !s || !*s )
-			return -1;
+			return 0;
 
 		int index = engine->PrecacheModel( s );
 
@@ -87,7 +89,7 @@ namespace GoldSRC
 	int ModelIndex( const char *m )
 	{
 		if ( !m )
-			return -1;
+			return 0;
 
 		return modelinfo->GetModelIndex( m );
 	}
@@ -147,15 +149,23 @@ namespace GoldSRC
 	}
 
 
-	void MoveToOrigin( edict_t *end, const float *pflGoal, float dist, int iMoveType )
+	void MoveToOrigin( edict_t *ent, const float *pflGoal, float dist, int iMoveType )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( ent );
+		if ( pEnt ) 
+		{
+			pEnt->MoveToGoal( pflGoal, dist, iMoveType );
+		}
 	}
 
 	
 	void ChangeYaw( edict_t *ent )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( ent );
+		if ( pEnt ) 
+		{
+			pEnt->ChangeYaw();
+		}
 	}
 
 
@@ -197,7 +207,26 @@ namespace GoldSRC
 
 	edict_t *FindClientInPVS( edict_t *pEdict )
 	{
-		//LOG_STUB();
+		for ( int i = 1; i <= gpGlobals->maxClients; i++ )
+		{
+			CBaseEntity *pPlayer = g_pGoldSRCServerGameEnts->GetEntityByIndex( i );
+			if ( !pPlayer )
+				continue;
+
+			if ( !pPlayer->IsPlayer() )
+				return NULL;
+
+			Vector eyePos;
+			VectorAdd( pPlayer->EntVars()->origin, pPlayer->EntVars()->view_ofs, eyePos.Base() );
+
+			::byte pvs[MAX_MAP_LEAFS / 8];
+
+			int cluster = engine->GetClusterForOrigin( eyePos );
+			engine->GetPVSForCluster( cluster, sizeof( pvs ), pvs );
+			if ( engine->CheckOriginInPVS( eyePos, pvs, sizeof( pvs ) ) )
+				return pPlayer->GoldSrcEdict();
+		}
+
 		return NULL;
 	}
 
@@ -363,7 +392,14 @@ namespace GoldSRC
 		if ( fFlags & GoldSRC::G_SND_SPAWNING )
 			flags |= SND_SPAWNING;
 
-		enginesound->EmitSound( filter, entindex, channel, sample, volume, sndlvl, flags, pitch );
+		if ( sample[0] == '!' )
+		{
+			enginesound->EmitSentenceByIndex( filter, entindex, channel, atoi( sample + 1 ), volume, sndlvl, flags, pitch );
+		}
+		else
+		{
+			enginesound->EmitSound( filter, entindex, channel, sample, volume, sndlvl, flags, pitch );
+		}
 	}
 
 
@@ -399,9 +435,14 @@ namespace GoldSRC
 
 	void TraceLine( const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr )
 	{
-		//LOG_STUB()
-		Q_memset( ptr, 0, sizeof( TraceResult ) );
-		ptr->flFraction = 1.0f;
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( pentToSkip );
+
+		Vector vecStart;
+		Vector vecEnd;
+		VectorCopy( v1, vecStart.Base() );
+		VectorCopy( v2, vecEnd.Base() );
+
+		UTIL_TraceLine( vecStart, vecEnd, fNoMonsters, pEnt, ptr );
 	}
 
 	
@@ -413,14 +454,21 @@ namespace GoldSRC
 
 	int TraceMonsterHull( edict_t *pEdict, const float *v1, const float *v2, int fNoMonsters, edict_t *pentToSkip, TraceResult *ptr )
 	{
-		LOG_STUB();
+		//LOG_STUB();
 		return 0;
 	}
 
 	
 	void TraceHull( const float *v1, const float *v2, int fNoMonsters, int hullNumber, edict_t *pentToSkip, TraceResult *ptr )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( pentToSkip );
+
+		Vector vecStart;
+		Vector vecEnd;
+		VectorCopy( v1, vecStart.Base() );
+		VectorCopy( v2, vecEnd.Base() );
+
+		UTIL_TraceHull( vecStart, vecEnd, fNoMonsters, hullNumber, pEnt, ptr );
 	}
 
 
@@ -451,13 +499,13 @@ namespace GoldSRC
 
 	void ServerCommand( char *str )
 	{
-		LOG_STUB();
+		engine->ServerCommand( str );
 	}
 
 
 	void ServerExecute( void )
 	{
-		LOG_STUB();
+		engine->ServerExecute();
 	}
 
 
@@ -475,7 +523,7 @@ namespace GoldSRC
 
 	void LightStyle( int style, char *val )
 	{
-		LOG_STUB();
+		engine->LightStyle( style, val );
 	}
 
 
@@ -488,68 +536,68 @@ namespace GoldSRC
 
 	int PointContents( const float *rgflVector )
 	{
-		LOG_STUB();
+		//LOG_STUB();
 		return 0;
 	}
 
 
 	void MessageBegin( int msg_dest, int msg_type, const float *pOrigin, edict_t *ed )
 	{
-		LOG_STUB();
+		UserMessages()->MessageBegin( msg_dest, msg_type, pOrigin, ed );
 	}
 
 
 	void MessageEnd( void )
 	{
-		LOG_STUB();
+		UserMessages()->MessageEnd();
 	}
 
 
 	void WriteByte( int iValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteByte( iValue );
 	}
 
 
 	void WriteChar( int iValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteChar( iValue );
 	}
 
 
 	void WriteShort( int iValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteShort( iValue );
 	}
 
 
 	void WriteLong( int iValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteLong( iValue );
 	}
 
 
 	void WriteAngle( float flValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteAngle( flValue );
 	}
 
 
 	void WriteCoord( float flValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteCoord( flValue );
 	}
 
 
 	void WriteString( const char *sz )
 	{
-		LOG_STUB();
+		UserMessages()->WriteString( sz );
 	}
 
 
 	void WriteEntity( int iValue )
 	{
-		LOG_STUB();
+		UserMessages()->WriteEntity( iValue );
 	}
 
 
@@ -695,15 +743,19 @@ namespace GoldSRC
 
 	void *GetModelPtr( edict_t *pEdict )
 	{
-		//LOG_STUB();
-		return NULL;
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( pEdict );
+		if ( pEnt ) 
+		{
+			return pEnt->GetModelPtr();
+		}
+
+		return 0;
 	}
 
 
 	int RegUserMsg( const char *pszName, int iSize )
 	{
-		LOG_STUB();
-		return 0;
+		return UserMessages()->Register( pszName, iSize );
 	}
 
 
@@ -715,7 +767,11 @@ namespace GoldSRC
 
 	void GetBonePosition( const edict_t *pEdict, int iBone, float *rgflOrigin, float *rgflAngles )
 	{
-		LOG_STUB();
+		CBaseEntity *pEnt = g_pGoldSRCEdict->GetSourceEntity( (edict_t *)pEdict );
+		if ( pEnt ) 
+		{
+			pEnt->GetBonePosition( iBone, rgflOrigin, rgflAngles );
+		}
 	}
 
 
@@ -768,7 +824,7 @@ namespace GoldSRC
 
 	void GetAttachment( const edict_t *pEdict, int iAttachment, float *rgflOrigin, float *rgflAngles )
 	{
-		LOG_STUB();
+		//LOG_STUB();
 	}
 
 

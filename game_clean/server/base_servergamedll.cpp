@@ -9,6 +9,7 @@
 #include "engine/IEngineSound.h"
 #include "engine/IEngineTrace.h"
 #include "engine/ivmodelinfo.h"
+#include "ispatialpartition.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -18,7 +19,7 @@ IGameEventManager2 *gameeventmanager = NULL;
 IEngineSound *enginesound = NULL;
 IVModelInfo *modelinfo = NULL;
 IEngineTrace *enginetrace = NULL;
-
+ISpatialPartition *partition = NULL;
 
 bool CBaseServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInterfaceFn physicsFactory, CreateInterfaceFn fileSystemFactory, CGlobalVars *pGlobals )
 {
@@ -44,6 +45,8 @@ bool CBaseServerGameDLL::DLLInit( CreateInterfaceFn engineFactory, CreateInterfa
 	if ( ( modelinfo = ( IVModelInfo * )engineFactory( VMODELINFO_SERVER_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 	if ( ( enginetrace = ( IEngineTrace * )engineFactory( INTERFACEVERSION_ENGINETRACE_SERVER, NULL ) ) == NULL )
+		return false;
+	if ( ( partition = ( ISpatialPartition * )engineFactory( INTERFACEVERSION_SPATIALPARTITION, NULL ) ) == NULL )
 		return false;
 
 	g_pGameEventListener->ListenForGameEvents();

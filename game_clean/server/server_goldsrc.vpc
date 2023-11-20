@@ -26,11 +26,24 @@ $Project "Server (GoldSRC Wrapper)"
 		-$File	"default_servergamedll.cpp"
 		-$File	"default_servergameents.cpp"
 
+		$File	"$SRCDIR\public\bone_setup.cpp"		\
+				"$SRCDIR\public\collisionutils.cpp"	\
+				"$SRCDIR\public\studio.cpp"
+				{
+					$Configuration
+					{
+						$Compiler
+						{
+							$Create/UsePrecompiledHeader	"Not Using Precompiled Headers"
+						}
+					}
+				}
+
 		$Folder	"GoldSRC Wrapper"
 		{
 			$File	"goldsrc\goldsrc_baseentity.cpp"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.cpp"
-			$File	"goldsrc\goldsrc_cvars.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_cvars_shared.cpp"
 			$File	"goldsrc\goldsrc_edict.cpp"
 			$File	"goldsrc\goldsrc_eiface.cpp"
 			$File	"goldsrc\goldsrc_globalvars.cpp"
@@ -43,6 +56,7 @@ $Project "Server (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_servergamedll.cpp"
 			$File	"goldsrc\goldsrc_servergameents.cpp"
 			$File	"goldsrc\goldsrc_trace.cpp"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_usermessages_shared.cpp"
 		}
 	}
 
@@ -52,7 +66,7 @@ $Project "Server (GoldSRC Wrapper)"
 		{
 			$File	"goldsrc\goldsrc_baseentity.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_collideable_shared.h"
-			$File	"goldsrc\goldsrc_cvars.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_cvars_shared.h"
 			$File	"goldsrc\goldsrc_edict.h"
 			$File	"goldsrc\goldsrc_eiface.h"
 			$File	"goldsrc\goldsrc_globalvars.h"
@@ -66,6 +80,7 @@ $Project "Server (GoldSRC Wrapper)"
 			$File	"goldsrc\goldsrc_servergameents.h"
 			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_studio_shared.h"
 			$File	"goldsrc\goldsrc_trace.h"
+			$File	"$SRCDIR\game_clean\shared\goldsrc\goldsrc_usermessages_shared.h"
 		}
 	}
 
@@ -75,5 +90,9 @@ $Project "Server (GoldSRC Wrapper)"
 		{
 			$File	"$SRCDIR\public\goldsrc\goldsrc_const.h"
 		}
+
+		$File	"$SRCDIR\public\bone_setup.h"
+		$File	"$SRCDIR\public\collisionutils.h"
+		$File	"$SRCDIR\public\studio.h"
 	}
 }

@@ -13,6 +13,9 @@ public:
 
 	void LoadSentences( const char *szPath );
 	void UnloadSentences();
+
+private:
+	//int m_realindex[1536];
 };
 
 extern CSentencesManager *SentencesManager();

@@ -81,6 +81,15 @@ namespace GoldSRC
 		int		nodeflags;
 		int		nextseq;
 	};
+
+
+	struct mstudioevent_t
+	{
+		int		frame;
+		int		event;
+		int		type;
+		char	options[64];
+	};
 }
 
 #endif // GOLDSRC_STUDIO_SHARED_H

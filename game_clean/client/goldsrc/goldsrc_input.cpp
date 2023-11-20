@@ -1,6 +1,7 @@
 #include "cbase.h"
 #include "goldsrc_input.h"
 #include "cdll_int.h"
+#include "goldsrc_cdll_int.h"
 #include "globalvars_base.h"
 
 #include <vgui/ISurface.h>
@@ -18,25 +19,23 @@ CGoldSRCInput *g_pGoldSRCInput = &g_GoldSRCInput;
 
 static CUserCmdList s_NullList = { {}, 1, -1 };
 
-struct kbutton_t
-{
-	int down[2];
-	int state;
-};
+
+GoldSRC::kbutton_t	in_left = {};
+GoldSRC::kbutton_t	in_right = {};
+GoldSRC::kbutton_t	in_forward = {};
+GoldSRC::kbutton_t	in_back = {};
+GoldSRC::kbutton_t	in_moveleft = {};
+GoldSRC::kbutton_t	in_moveright = {};
+GoldSRC::kbutton_t	in_attack = {};
+GoldSRC::kbutton_t	in_attack2 = {};
+GoldSRC::kbutton_t	in_use = {};
+GoldSRC::kbutton_t	in_jump = {};
+GoldSRC::kbutton_t	in_duck = {};
+
+static int in_impulse = 0;
 
 
-kbutton_t	in_left = {};
-kbutton_t	in_right = {};
-kbutton_t	in_forward = {};
-kbutton_t	in_back = {};
-kbutton_t	in_moveleft = {};
-kbutton_t	in_moveright = {};
-kbutton_t	in_use = {};
-kbutton_t	in_jump = {};
-kbutton_t	in_duck = {};
-
-
-void KeyDown( kbutton_t *b, const char *c )
+void KeyDown( GoldSRC::kbutton_t *b, const char *c )
 {
 	int k = -1;
 	
@@ -62,7 +61,7 @@ void KeyDown( kbutton_t *b, const char *c )
 }
 
 
-void KeyUp( kbutton_t *b, const char *c )
+void KeyUp( GoldSRC::kbutton_t *b, const char *c )
 {
 	if ( !c || !c[0] )
 	{
@@ -103,12 +102,18 @@ void IN_MoveleftDown( const CCommand &args ) { KeyDown( &in_moveleft, args[1] );
 void IN_MoveleftUp( const CCommand &args ) { KeyUp( &in_moveleft, args[1] ); }
 void IN_MoverightDown( const CCommand &args ) { KeyDown( &in_moveright, args[1] ); }
 void IN_MoverightUp( const CCommand &args ) { KeyUp( &in_moveright, args[1] ); }
+void IN_AttackDown( const CCommand &args ) { KeyDown( &in_attack, args[1] ); }
+void IN_AttackUp( const CCommand &args ) { KeyUp( &in_attack, args[1] ); }
+void IN_Attack2Down( const CCommand &args ) { KeyDown( &in_attack2, args[1] ); }
+void IN_Attack2Up( const CCommand &args ) { KeyUp( &in_attack2, args[1] ); }
 void IN_UseDown( const CCommand &args ) { KeyDown( &in_use, args[1] ); }
 void IN_UseUp( const CCommand &args ) { KeyUp( &in_use, args[1] ); }
 void IN_JumpDown( const CCommand &args ) { KeyDown( &in_jump, args[1] ); }
 void IN_JumpUp( const CCommand &args ) { KeyUp( &in_jump, args[1] ); }
 void IN_DuckDown( const CCommand &args ) { KeyDown( &in_duck, args[1] ); }
 void IN_DuckUp( const CCommand &args ) { KeyUp( &in_duck, args[1] ); }
+
+void IN_Impulse( const CCommand &args ) { in_impulse = atoi( args[1] ); }
 
 static ConCommand startleft( "+left", IN_LeftDown );
 static ConCommand endleft( "-left", IN_LeftUp );
@@ -122,6 +127,10 @@ static ConCommand startmoveleft( "+moveleft", IN_MoveleftDown );
 static ConCommand endmoveleft( "-moveleft", IN_MoveleftUp );
 static ConCommand startmoveright( "+moveright", IN_MoverightDown );
 static ConCommand endmoveright( "-moveright", IN_MoverightUp );
+static ConCommand startattack( "+attack", IN_AttackDown );
+static ConCommand endattack( "-attack", IN_AttackUp );
+static ConCommand startattack2( "+attack2", IN_Attack2Down );
+static ConCommand endattack2( "-attack2", IN_Attack2Up );
 static ConCommand startuse( "+use", IN_UseDown );
 static ConCommand enduse( "-use", IN_UseUp );
 static ConCommand startjump( "+jump", IN_JumpDown );
@@ -129,8 +138,10 @@ static ConCommand endjump( "-jump", IN_JumpUp );
 static ConCommand startduck( "+duck", IN_DuckDown );
 static ConCommand endduck( "-duck", IN_DuckUp );
 
+static ConCommand impulse( "impulse", IN_Impulse );
 
-float CL_KeyState( kbutton_t *key )
+
+float CL_KeyState( GoldSRC::kbutton_t *key )
 {	
 	int impulsedown = key->state & 2;
 	int impulseup = key->state & 4;
@@ -388,7 +399,8 @@ void CGoldSRCInput::CreateMoveInternal( GoldSRC::usercmd_t *pCmd, float frametim
 	}
 
 	// Impulse command
-	pCmd->impulse = 0;
+	pCmd->impulse = in_impulse;
+	in_impulse = 0;
 
 	// Weapon selection
 	pCmd->weaponselect = 0;
@@ -396,14 +408,18 @@ void CGoldSRCInput::CreateMoveInternal( GoldSRC::usercmd_t *pCmd, float frametim
 	// Button bits
 	pCmd->buttons = 0;
 
+	if ( in_attack.state & 3 )
+		pCmd->buttons |= ( 1 << 0 );
 	if ( in_duck.state & 3 )
 		pCmd->buttons |= ( 1 << 2 );
 	if ( in_jump.state & 3 )
 		pCmd->buttons |= ( 1 << 1 );
 	if ( in_use.state & 3 )
 		pCmd->buttons |= ( 1 << 5 );
+	if ( in_attack2.state & 3 )
+		pCmd->buttons |= ( 1 << 11 );
 
-	//in_attack.state &= ~2;
+	in_attack.state &= ~2;
 	in_duck.state &= ~2;
 	in_jump.state &= ~2;
 	in_forward.state &= ~2;
@@ -413,7 +429,7 @@ void CGoldSRCInput::CreateMoveInternal( GoldSRC::usercmd_t *pCmd, float frametim
 	in_right.state &= ~2;
 	in_moveleft.state &= ~2;
 	in_moveright.state &= ~2;
-	//in_attack2.state &= ~2;
+	in_attack2.state &= ~2;
 	//in_reload.state &= ~2;
 	//in_alt1.state &= ~2;
 	//in_score.state &= ~2;

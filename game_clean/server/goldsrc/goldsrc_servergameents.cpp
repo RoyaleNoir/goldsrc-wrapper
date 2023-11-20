@@ -93,6 +93,18 @@ CBaseEntity *CGoldSRCServerGameEnts::GetEntityByIndex( int index )
 }
 
 
+CBaseEntity *CGoldSRCServerGameEnts::GetEntityByHandle( CBaseHandle hEnt )
+{
+	if ( !hEnt.IsValid() || hEnt.GetEntryIndex() > NUM_ENT_ENTRIES )
+		return NULL;
+
+	if ( m_entries[hEnt.GetEntryIndex()].m_SerialNumber != hEnt.GetSerialNumber() )
+		return NULL;
+
+	return m_entries[hEnt.GetEntryIndex()].m_pEntity;
+}
+
+
 //-----------------------------------------------------------------------------
 // Purpose: Runs a tick for every entity.
 //-----------------------------------------------------------------------------
@@ -119,6 +131,17 @@ void CGoldSRCServerGameEnts::TickEntities()
 		GlobalVars()->force_retouch--;
 }
 
+
+void CGoldSRCServerGameEnts::MarkEntitiesAsTouching( edict_t *e1, edict_t *e2 )
+{
+	CBaseEntity *pEnt1 = EdictToBaseEntity( e1 );
+	CBaseEntity *pEnt2 = EdictToBaseEntity( e2 );
+
+	if ( pEnt1 && pEnt2 )
+	{
+		pEnt1->Touch( pEnt2 );
+	}
+}
 
 void CGoldSRCServerGameEnts::FreeContainingEntity( edict_t *pEdict )
 {

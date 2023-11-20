@@ -1,1 +1,2 @@
-devtools\bin\vpc.exe /cleanbase /goldsrc +client +server /mksln games.sln
+devtools\bin\vpc.exe /goldsrc +client +server +sdl2_stub +vgui_stub /mksln games.sln
+pause

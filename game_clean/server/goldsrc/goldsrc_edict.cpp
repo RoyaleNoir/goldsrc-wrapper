@@ -198,6 +198,9 @@ void *CGoldSRCEdict::GetPrivateData( GoldSRC::edict_t *pEdict )
 
 int CGoldSRCEdict::ToOffset( const GoldSRC::edict_t *pEdict )
 {
+	if ( !pEdict )
+		return 0;
+
 	return ( (int)pEdict - (int)&m_edicts  );
 }
 

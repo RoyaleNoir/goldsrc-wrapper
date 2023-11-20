@@ -1,5 +1,6 @@
 #include "cbase.h"
 #include "goldsrc_c_baseentity.h"
+#include "cdll_int.h"
 #include "engine/ivmodelinfo.h"
 #include "engine/ivmodelrender.h"
 #include "ivrenderview.h"
@@ -8,6 +9,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+extern IVEngineClient *engine;
 extern IVModelInfoClient *modelinfo;
 extern IVModelRender *modelrender;
 
@@ -34,7 +36,11 @@ IMPLEMENT_CLIENTCLASS_DT_NOBASE( C_BaseEntity, DT_BaseEntity, CBaseEntity )
 	RecvPropVector( RECVINFO( m_origin ) ),
 	RecvPropQAngles( RECVINFO( m_angles ) ),
 	RecvPropVector( RECVINFO( m_view_ofs ) ),
+	RecvPropVector( RECVINFO( m_velocity ) ),
 	RecvPropDataTable( RECVINFO( m_Collideable ), &REFERENCE_RECV_TABLE( DT_Collideable ) ),
+
+	RecvPropFloat( RECVINFO( m_renderamt ) ),
+	RecvPropInt( RECVINFO( m_rendermode ) ),
 END_RECV_TABLE()
 
 #define CBaseEntity C_BaseEntity
@@ -71,6 +77,12 @@ C_BaseEntity::~C_BaseEntity()
 }
 
 
+GoldSRC::cl_entity_t *C_BaseEntity::ClEnt()
+{
+	return &m_ClEnt;
+}
+
+
 bool C_BaseEntity::Init( int entnum, int iSerialNum )
 {
 	m_nEntIndex = entnum;
@@ -92,6 +104,10 @@ const Vector &C_BaseEntity::GetViewOffset() const
 	return m_view_ofs;
 }
 
+const Vector &C_BaseEntity::GetVelocity() const
+{
+	return m_velocity;
+}
 
 matrix3x4_t& C_BaseEntity::EntityToWorldTransform()
 {
@@ -347,7 +363,10 @@ void C_BaseEntity::ComputeFxBlend()
 int C_BaseEntity::GetFxBlend( void )
 {
 	// TODO: Rendering
-	return 255;
+	if ( m_rendermode == kRenderNormal )
+		return 255;
+
+	return m_renderamt;
 }
 
 
@@ -683,6 +702,12 @@ C_BaseEntity *C_BaseEntityList::GetEntityByIndex( int index )
 		return NULL;
 
 	return m_entries[index].m_pEntity;
+}
+
+
+C_BaseEntity *C_BaseEntityList::GetLocalPlayer()
+{
+	return GetEntityByIndex( engine->GetLocalPlayer() );
 }
 
 

@@ -37,6 +37,9 @@ public:
 	void SetAbsMinMax( const float *pAbsMins, const float *pAbsMaxs );
 	void SetSolidVars( int solid );
 
+	void UpdatePartition();
+	void UpdatePartitionMask();
+
 	// ICollideable
 public:
 	virtual IHandleEntity *GetEntityHandle();
@@ -72,6 +75,8 @@ public:
 	virtual const matrix3x4_t *GetRootParentToWorldTransform() const;
 
 private:
+	void MarkDirty();
+
 	CBaseEntity *m_pEntity;
 
 	CNetworkVector( m_absmin );
@@ -81,6 +86,10 @@ private:
 
 	CNetworkVar( unsigned char, m_nSolidType );
 	CNetworkVar( unsigned short, m_usSolidFlags );
+
+#if !defined( CLIENT_DLL )
+	SpatialPartitionHandle_t m_PartitionHandle;
+#endif
 };
 
 namespace GoldSRC
@@ -129,12 +138,18 @@ inline int SourceSolidFlags( int solid )
 	switch ( solid )
 	{
 	case GoldSRC::SOLID_TRIGGER:
-		return FSOLID_NOT_SOLID;
+		return FSOLID_NOT_SOLID | FSOLID_TRIGGER;
 	case GoldSRC::SOLID_SLIDEBOX:
 		return FSOLID_NOT_STANDABLE;
 	default:
 		return 0;
 	}
 }
+
+#if !defined( CLIENT_DLL )
+extern void PartitionQueryCallBackInit();
+extern void PartitionQueryCallBackShutdown();
+extern void PartitionQueryCallBackLevelShutdownPostEntity();
+#endif
 
 #endif // GOLDSRC_COLLIDEABLE_SHARED_H
